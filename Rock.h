@@ -13,7 +13,7 @@ class Rock : public CCPhysicsSprite
 {
 
 public:
-	static Rock* createRock(float dt,CCPoint pt);//根据时间创建不同大小的石球
+	static Rock* createRock(float dt,CCPoint pt,float scale);//根据时间创建不同大小的石球
 	bool isDead();
 
 protected:

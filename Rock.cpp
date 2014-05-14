@@ -3,7 +3,7 @@
 
 
 
-Rock* Rock::createRock(float dt,CCPoint pt)
+Rock* Rock::createRock(float dt,CCPoint pt,float scale)
 {
 
 	CCRect rect = CCRect(pt.x, pt.y, 2, 2);
@@ -20,7 +20,7 @@ Rock* Rock::createRock(float dt,CCPoint pt)
     {
         CC_SAFE_DELETE(rock);
     }
-	rock->setScale( 0.2 );
+	rock->setScale(scale);
 	return rock;
 }
 

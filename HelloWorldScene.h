@@ -33,21 +33,22 @@ public:
 	long getCurrentTime();   
 
 
-
+	CCActionInterval*  actionTo;
 	Rock *mRock;
 
 	b2World *world;
-    CCPhysicsSprite *bird;
+	CCSprite *fakeRock;
     CCSize screenSize;
 	CCPoint touchPoint;
 	long beginTime;
 	long endTime;
-	long mscale;
+	double mscale;
+	bool rockgrowing;
 
 private:
 
-    void addBird();
-	void addRock(float dt,CCPoint pt);
+
+	void addRock(float dt,CCPoint pt,float scale);
 	void addMap();
 	void initWorld();
 };
