@@ -35,6 +35,12 @@ bool HelloWorld::init()
 	initWorld();
 	//2 加载地图。
 	addMap();
+	//把气球放在地面上
+	addBolloon(ccp(200.0,60.0));
+	//把障碍放上
+	addObstacle(0,ccp(140.0,80.0),b2_pi*0.5,b2Vec2(0.2f, 0.2f),0);
+	addObstacle(1,ccp(200.0,100.0),0.0,b2Vec2(0.4f, 0.2f),1);
+	addObstacle(0,ccp(260.0,80.0),b2_pi*0.5,b2Vec2(0.2f, 0.2f),2);
 	mRock =new Rock();
 	//
 	scheduleUpdate();
@@ -49,7 +55,117 @@ void HelloWorld::initWorld(){
 }
 void  HelloWorld::addMap()
 {
+	 mMap=Map::creatAndInit(world);
+	 mMap->addMap();
 
+
+	 addChild(mMap);
+}
+void HelloWorld::addBolloon(CCPoint pt)
+{
+	mbolloon=Bolloon::createBolloon(pt);
+	CCSize size = mbolloon->getContentSize();//2倍半径
+	mbolloon->radius = (size.width*0.05)/RATIO;
+
+	b2BodyDef bodyDef;
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.allowSleep = false;
+	b2Body *  BolloonBody= world->CreateBody(&bodyDef);
+	
+	b2CircleShape BolloonShape;
+	//修改为根据球的大小改变半径
+    BolloonShape.m_radius = mbolloon->radius;
+    
+    b2FixtureDef rockFixtureDef;
+    rockFixtureDef.shape= &BolloonShape;
+	rockFixtureDef.density=0.1;
+	rockFixtureDef.restitution = 0.3f;//反弹特性
+	rockFixtureDef.friction=1.0f;
+
+
+
+    BolloonBody->CreateFixture(&rockFixtureDef);
+	mbolloon->setPTMRatio(RATIO);
+	mbolloon->setB2Body(BolloonBody);
+	mbolloon->setPosition(ccp( pt.x, pt.y));
+	BolloonBody->ApplyForceToCenter(b2Vec2(0.0f, 0.1f));
+	//test the mass
+	b2MassData massData;
+    BolloonBody->GetMassData(&massData);
+
+	addChild(mbolloon);
+
+}
+void HelloWorld::addObstacle(int type,CCPoint pt,float angle,const b2Vec2& scale,int key)
+{
+	obstacle* mObstacle =obstacle::createObstacle(type,pt,scale);
+
+	CCSize size = mObstacle->getContentSize();//2倍半径
+	
+
+	b2BodyDef bodyDef;
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position = b2Vec2(pt.x/RATIO, pt.y/RATIO);
+	bodyDef.allowSleep = true;
+	bodyDef.angle =angle;
+
+
+	b2Body *  ObstacleBody= world->CreateBody(&bodyDef);
+
+	b2PolygonShape ObstacleShape;
+
+    ObstacleShape.SetAsBox(size.width/2/RATIO*scale.x,size.height/2/RATIO*scale.y);
+    
+    b2FixtureDef rockFixtureDef;
+    rockFixtureDef.shape= &ObstacleShape;
+	rockFixtureDef.density=1;
+	//rockFixtureDef.restitution = 0.3f;//反弹特性
+	rockFixtureDef.friction=1.0f;
+
+    ObstacleBody->CreateFixture(&rockFixtureDef);
+
+	mObstacle->setPTMRatio(RATIO);
+	mObstacle->setB2Body(ObstacleBody);
+	mObstacle->setPosition(ccp( pt.x, pt.y));
+	addChild(mObstacle);
+
+	//test the mass
+	b2MassData massData;
+	ObstacleBody->GetMassData(&massData);
+
+	mObstacles.insert(make_pair(key,mObstacle));
+}
+
+void HelloWorld::addRock(float dt,CCPoint pt,float scale)
+{
+		mRock =Rock::createRock(0,pt,scale);
+		//设置小球物理世界半径
+	CCSize size = mRock->getContentSize();//2倍半径
+	mRock->setRadius(size.width/2/RATIO*scale);
+	//将小球放进层
+
+	b2BodyDef bodyDef;
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position = b2Vec2(pt.x/RATIO, pt.y/RATIO);
+	bodyDef.allowSleep = true;
+	b2Body *  rockBody= world->CreateBody(&bodyDef);
+	rockBody->SetAngularDamping(1.0f);
+	b2CircleShape rockShape;
+	//修改为根据球的大小改变半径
+    rockShape.m_radius = mRock->radius;
+    
+    b2FixtureDef rockFixtureDef;
+    rockFixtureDef.shape= &rockShape;
+	rockFixtureDef.density=rockShape.m_radius*rockShape.m_radius*300;
+	rockFixtureDef.restitution = 0.3f;//反弹特性
+	rockFixtureDef.friction=1.0f;
+
+    rockBody->CreateFixture(&rockFixtureDef);
+
+	mRock->setPTMRatio(RATIO);
+	mRock->setB2Body(rockBody);
+	mRock->setPosition(ccp( pt.x, pt.y));
+	addChild(mRock);
 
 }
 void HelloWorld::registerWithTouchDispatcher()
@@ -103,27 +219,6 @@ long HelloWorld::getCurrentTime()
 	return tv.tv_sec * 1000 + tv.tv_usec / 1000;     
 }   
 
-void HelloWorld::addRock(float dt,CCPoint pt,float scale)
-{
-		mRock =Rock::createRock(0,touchPoint,scale);
-	
-	//将小球放进层
-	
-	
-	
-
-	b2BodyDef bodyDef;
-	bodyDef.type = b2_dynamicBody;
-	bodyDef.position = b2Vec2(pt.x/RATIO, pt.y/RATIO);
-	b2Body * rockBody = world->CreateBody(&bodyDef);
-
-	mRock->setPTMRatio(RATIO);
-	mRock->setB2Body(rockBody);
-	mRock->setPosition(ccp( pt.x, pt.y));
-	addChild(mRock);
-
-}
-
 
 
 void HelloWorld::update(float dt){
@@ -132,10 +227,20 @@ void HelloWorld::update(float dt){
 		//mscale*=1.03;
 		//mRock->setScale( mscale );
 	}
-
+	//判断气球飞出屏幕为胜利
+	if(mbolloon->getB2Body()->GetPosition().y>(screenSize.height+20)/RATIO) 
+	{
+		stopGame();
+	}
+	mbolloon->getB2Body()->ApplyForceToCenter(b2Vec2(0.0f, 0.1f));
 
 	world->Step(dt, 8, 3);
 
+}
+
+void HelloWorld::stopGame(){
+    unscheduleUpdate();
+	CCMessageBox("气球得救了", "Congratulation !!");
 }
 
 void HelloWorld::menuCloseCallback(CCObject* pSender)

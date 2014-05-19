@@ -21,9 +21,15 @@ Rock* Rock::createRock(float dt,CCPoint pt,float scale)
         CC_SAFE_DELETE(rock);
     }
 	rock->setScale(scale);
+	
+	
+
 	return rock;
 }
-
+void  Rock::setRadius(float radius )
+{
+	this->radius=radius;
+}
 bool Rock::isDead()
 {
 	return true;

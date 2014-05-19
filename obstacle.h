@@ -1,5 +1,5 @@
-#ifndef __ROCK_H__
-#define __ROCK_H__
+#ifndef __obstacle_H__
+#define __obstacle_H__
 
 #include "cocos2d.h"
 #include "Box2D\Box2D.h"
@@ -9,21 +9,20 @@
 //必须使用这个cocos2d::extension命名空间来使用CCPhysicsSprite
 USING_NS_CC_EXT;
 USING_NS_CC;
-//定义一个石球类，包含大小，重量等属性。每次点击一次屏幕，建立一个石球。
-class Rock : public CCPhysicsSprite
+
+class obstacle : public CCPhysicsSprite
 {
 
 public:
-	static Rock* createRock(float dt,CCPoint pt,float scale);//根据时间创建不同大小的石球
+	static obstacle* createObstacle(int type,CCPoint pt,const b2Vec2& scale);//根据类型创建不同材质的障碍
 	bool isDead();
 	void setRadius(float radius );
 	float radius;//ratio
 protected:
 	bool Dead;
-	
 	float weight;
 
 
 };
 
-#endif // __ROCK_H__
+#endif // __obstacle_H__
