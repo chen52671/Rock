@@ -16,11 +16,12 @@ class Bolloon : public CCPhysicsSprite
 public:
 	static Bolloon* createBolloon(CCPoint pt);//根据时间创建不同大小的石球
 	bool isDead();
-		float radius;
+	float radius;
+	float weight;
 protected:
 	bool Dead;
+	
 
-	float weight;
 
 
 };

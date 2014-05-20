@@ -19,7 +19,7 @@ Bolloon* Bolloon::createBolloon(CCPoint pt)
     {
         CC_SAFE_DELETE(mBolloon);
     }
-	mBolloon->setScale(0.1);
+	mBolloon->setScale(0.2);
 	return mBolloon;
 }
 
