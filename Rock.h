@@ -18,10 +18,11 @@ public:
 	bool isDead();
 	void setRadius(float radius );
 	float radius;//ratio
+		float weight;
 protected:
 	bool Dead;
 	
-	float weight;
+
 
 
 };

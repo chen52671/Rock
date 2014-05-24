@@ -31,7 +31,7 @@ public:
     // implement the "static node()" method manually
     CREATE_FUNC(GameScene);
 
-	virtual void update(float dt);
+	 void updateGame(float dt);
 	//÷ÿ–¥¥•∆¡∑Ω∑®
 	virtual void registerWithTouchDispatcher();
     virtual bool ccTouchBegan(CCTouch* touch, CCEvent* event);
@@ -53,8 +53,10 @@ public:
 	bool rockgrowing;
 	Map *mMap;
 	Bolloon *mbolloon;
-	
+	float rockMassTotal;
+	double  rockPercent;
 	map<int ,obstacle*> mObstacles;
+	CCLabelTTF* rockPercentLabel;
 private:
 
 	void addObstacle(int type,CCPoint pt,float angle,const b2Vec2& scale,int key);
@@ -63,6 +65,11 @@ private:
 	void initWorld();
 	void addBolloon(CCPoint pt);
 	void stopGame();
+	void showEndMenu();
+	void onQuit(CCObject* sender);
+	void onRestart(CCObject* sender);
+	void onNext(CCObject* sender);
+	void addRockPercent();
 };
 
 #endif // __GameScene_H__

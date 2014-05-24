@@ -1,5 +1,8 @@
 #include "GameScene.h"
-
+#include <stdlib.h>
+#include "AppMacros.h"
+#include "GameOverScene.h"
+#include "MenuScene.h"
 USING_NS_CC;
 
 CCScene* GameScene::scene()
@@ -27,6 +30,9 @@ bool GameScene::init()
 		return false;
 	}
 	mscale = 0.01f;
+	rockMassTotal=0;
+	rockPercent=100.00;
+	rockMassTotal=0.0;
 	rockgrowing=false;
 	screenSize = CCDirector::sharedDirector()->getVisibleSize();
 	//开启触摸
@@ -43,11 +49,15 @@ bool GameScene::init()
 	addObstacle(0,ccp(260.0,80.0),b2_pi*0.5,b2Vec2(0.2f, 0.2f),2);
 	mRock =new Rock();
 	//
-	scheduleUpdate();
+	addRockPercent();
 	
+	//scheduleUpdate();
+	this->schedule( schedule_selector(GameScene::updateGame) );
 
 	return true;
 }
+
+
 
 void GameScene::initWorld(){
 	world = new b2World(b2Vec2(0, -10));
@@ -120,8 +130,8 @@ void GameScene::addObstacle(int type,CCPoint pt,float angle,const b2Vec2& scale,
     
     b2FixtureDef rockFixtureDef;
     rockFixtureDef.shape= &ObstacleShape;
-	rockFixtureDef.density=1;
-	//rockFixtureDef.restitution = 0.3f;//反弹特性
+	rockFixtureDef.density=3;
+	rockFixtureDef.restitution = 0.0f;//反弹特性
 	rockFixtureDef.friction=1.0f;
 
     ObstacleBody->CreateFixture(&rockFixtureDef);
@@ -158,7 +168,7 @@ void GameScene::addRock(float dt,CCPoint pt,float scale)
     
     b2FixtureDef rockFixtureDef;
     rockFixtureDef.shape= &rockShape;
-	rockFixtureDef.density=rockShape.m_radius*rockShape.m_radius*300;
+	rockFixtureDef.density=10;
 	rockFixtureDef.restitution = 0.3f;//反弹特性
 	rockFixtureDef.friction=1.0f;
 
@@ -167,9 +177,29 @@ void GameScene::addRock(float dt,CCPoint pt,float scale)
 	mRock->setPTMRatio(RATIO);
 	mRock->setB2Body(rockBody);
 	mRock->setPosition(ccp( pt.x, pt.y));
-	addChild(mRock);
 
+	addChild(mRock);
+	//计算石头重量
+		//test the mass
+	b2MassData massData;
+    rockBody->GetMassData(&massData);
+	mRock->weight=massData.mass;
+	rockMassTotal+=mRock->weight;
+	rockPercent=100-rockMassTotal;
 }
+void GameScene::addRockPercent()
+{
+	char str[25];
+	sprintf(str, "%d",(int)rockPercent);
+    rockPercentLabel = CCLabelTTF::create(str, "Arial", TITLE_FONT_SIZE);
+    
+    // position the label on the center of the screen
+	rockPercentLabel->setPosition(ccp(screenSize.width*0.8,screenSize.height*0.9));
+
+    // add the label as a child to this layer
+    this->addChild(rockPercentLabel, 1);
+}
+
 void GameScene::registerWithTouchDispatcher()
 {
 	// higher priority than dragging
@@ -178,6 +208,7 @@ void GameScene::registerWithTouchDispatcher()
 }
 bool GameScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
 {
+	if(rockPercent<=0) return true;
 	CCPoint touchLocation = touch->getLocation();    
 
 	touchPoint = convertToNodeSpace( touchLocation );
@@ -208,7 +239,12 @@ void GameScene::ccTouchEnded(CCTouch* touch, CCEvent* event)
 	endTime=getCurrentTime();
 
 	//添加rock精灵
-	addRock(endTime-beginTime,touchPoint,scale1);
+	if(rockPercent>0)
+	{
+		addRock(endTime-beginTime,touchPoint,scale1);
+	}
+	else stopGame();
+	
 }
 
 
@@ -223,28 +259,92 @@ long GameScene::getCurrentTime()
 
 
 
-void GameScene::update(float dt){
-	if(rockgrowing)
+void GameScene::updateGame(float dt){
+	if(rockPercent<=0)
 	{
-		//mscale*=1.03;
-		//mRock->setScale( mscale );
+		
+	}
+
+
+	mbolloon->getB2Body()->ApplyForceToCenter(b2Vec2(0.0f, mbolloon->weight*11));
+	//更新剩余石头百分比
+		if(rockPercentLabel)
+	{
+	char str[25];
+	sprintf(str, "%d",(int)rockPercent);
+	rockPercentLabel->setString(str);
+	world->Step(dt, 8, 3);
 	}
 	//判断气球飞出屏幕为胜利
 	if(mbolloon->getB2Body()->GetPosition().y>(screenSize.height+20)/RATIO) 
 	{
 		stopGame();
 	}
-	mbolloon->getB2Body()->ApplyForceToCenter(b2Vec2(0.0f, mbolloon->weight*11));
-
-	world->Step(dt, 8, 3);
 
 }
 
 void GameScene::stopGame(){
-    unscheduleUpdate();
-	CCMessageBox("Bolloon Saved", "Congratulation !!");
+   //销毁b2body，和对应的sprite
+	 CCSprite *s;
+	    for (b2Body *b = world->GetBodyList(); b!=NULL; b=b->GetNext()) {
+        if (b->GetPosition().x<-3) {
+            s = (CCSprite*)b->GetUserData();
+            if (s!=NULL) {
+                s->removeFromParent();
+            }
+            
+            world->DestroyBody(b);
+        }
+    }
+
+		 unscheduleUpdate();
+
+		 showEndMenu();
 }
 
+void GameScene::showEndMenu(){
+	// 重新开始 Item
+    CCMenuItemFont* itemRestart = CCMenuItemFont::create("Restart", this, menu_selector(GameScene::onRestart));
+	//itemRestart->setFontSize(0.5*itemRestart->fontSize());
+
+	// 下一关 Item
+    CCMenuItemFont* itemNext = CCMenuItemFont::create("Next Stage", this, menu_selector(GameScene::onNext));
+	//menu动画
+	 CCActionInterval* color_action = CCTintBy::create(0.5f, 0, -255, -255);
+    CCActionInterval* color_back = color_action->reverse();
+    CCSequence* seq = CCSequence::create(color_action, color_back, NULL);
+    itemNext->runAction(CCRepeatForever::create(seq));
+
+	// 返回主菜单 Item
+    CCMenuItemFont* itemBack = CCMenuItemFont::create("Back", this, menu_selector(GameScene::onQuit));
+	//itemBack->setFontSize(0.5*itemBack->fontSize());
+
+	//创建menu
+	CCMenu* menu = CCMenu::create(itemRestart,itemNext,itemBack,NULL);
+	//横向排列
+	menu->alignItemsVertically();
+
+	addChild(menu);
+    menu->setPosition(ccp(screenSize.width/2, screenSize.height/2));
+
+}
+
+void GameScene::onQuit(CCObject* sender)
+{
+	    CCScene *scene = MenuScene::scene();
+
+		CCDirector::sharedDirector()->pushScene(scene);  
+}
+void GameScene::onRestart(CCObject* sender)
+{
+	    CCScene *scene = GameScene::scene();
+
+    CCDirector::sharedDirector()->pushScene(scene);  
+}
+void GameScene::onNext(CCObject* sender)
+{
+
+}
 void GameScene::menuCloseCallback(CCObject* pSender)
 {
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT) || (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
