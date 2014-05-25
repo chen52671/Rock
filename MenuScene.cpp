@@ -106,7 +106,8 @@ void MenuScene::menuStartGame(CCObject* pSender)
     if (pScene)
     {
 		CCDirector::sharedDirector()->replaceScene(pScene);
-        pScene->release();
+	//因为pScene本来在创建的时候就是autorelease的。所以不能再release了，否则下次切换场景的时候崩溃。
+      //  pScene->release();
     }
 }
 

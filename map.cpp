@@ -35,7 +35,7 @@ void Map::addMap()
             b2BodyDef lwallBD;
 			liftwall = world->CreateBody(&lwallBD);
 
-			shape.Set(b2Vec2(0.0f, 0.0f), b2Vec2(0.0f, 10.0f));
+			shape.Set(b2Vec2(0.0f, 0.0f), b2Vec2(0.0f, 20.0f));
 			wallFixtureDef.shape=&shape;
 			wallFixtureDef.friction=0.5;
             ground->CreateFixture(&wallFixtureDef);
@@ -45,7 +45,7 @@ void Map::addMap()
 			
 			rightwall = world->CreateBody(&rwallBD);
 
-			shape.Set(b2Vec2(worldsize.width/RATIO, 0.0f), b2Vec2(worldsize.width/RATIO, 10.0f));
+			shape.Set(b2Vec2(worldsize.width/RATIO, 0.0f), b2Vec2(worldsize.width/RATIO, 20.0f));
 			wallFixtureDef.shape=&shape;
 			wallFixtureDef.friction=2;
             ground->CreateFixture(&wallFixtureDef);

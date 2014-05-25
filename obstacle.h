@@ -10,11 +10,23 @@
 USING_NS_CC_EXT;
 USING_NS_CC;
 
+enum _obstacleType{
+	woodTube,
+	woodRectangle,
+	glassTube,
+	glassRectangle,
+	metalTube,
+	metalRectangle
+
+};
+
+
+
 class obstacle : public CCPhysicsSprite
 {
 
 public:
-	static obstacle* createObstacle(int type,CCPoint pt,const b2Vec2& scale);//根据类型创建不同材质的障碍
+	static obstacle* createObstacle(_obstacleType type,CCPoint pt,const b2Vec2& scale);//根据类型创建不同材质的障碍
 	bool isDead();
 	void setRadius(float radius );
 	float radius;//ratio

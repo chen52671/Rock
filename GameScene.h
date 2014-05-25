@@ -55,13 +55,14 @@ public:
 	Bolloon *mbolloon;
 	float rockMassTotal;
 	double  rockPercent;
-	map<int ,obstacle*> mObstacles;
+	CCArray * mObstacles;
 	CCLabelTTF* rockPercentLabel;
 private:
 
-	void addObstacle(int type,CCPoint pt,float angle,const b2Vec2& scale,int key);
+	void addObstacle(_obstacleType type,CCPoint pt,float angle,const b2Vec2& scale);
 	void addRock(float dt,CCPoint pt,float scale);
 	void addMap();
+	void addPause();
 	void initWorld();
 	void addBolloon(CCPoint pt);
 	void stopGame();
@@ -69,6 +70,8 @@ private:
 	void onQuit(CCObject* sender);
 	void onRestart(CCObject* sender);
 	void onNext(CCObject* sender);
+	void onPause(CCObject* sender);
+	
 	void addRockPercent();
 };
 

@@ -3,18 +3,30 @@
 
 
 
-obstacle* obstacle::createObstacle(int type,CCPoint pt,const b2Vec2& scale)
+obstacle* obstacle::createObstacle(_obstacleType type,CCPoint pt,const b2Vec2& scale)
 {
 
 	CCTexture2D *textureobstacle;
 	obstacle * m_obstacle = new obstacle();
 	switch (type)
 	{
-	case 0://玻璃材质1,方块
+	case glassTube://玻璃材质1,方块
 		textureobstacle = CCTextureCache::sharedTextureCache()->addImage("glass1.png");
 		break;
-	case 1://玻璃材质2，长条
+	case glassRectangle://玻璃材质2，长条
 		textureobstacle = CCTextureCache::sharedTextureCache()->addImage("glass2.png");
+		break;
+	case woodTube:
+		textureobstacle = CCTextureCache::sharedTextureCache()->addImage("wood1.png");
+		break;
+	case woodRectangle:
+		textureobstacle = CCTextureCache::sharedTextureCache()->addImage("wood2.png");
+		break;
+	case metalTube:
+		textureobstacle = CCTextureCache::sharedTextureCache()->addImage("metal1.png");
+		break;
+	case metalRectangle:
+		textureobstacle = CCTextureCache::sharedTextureCache()->addImage("metal2.png");
 		break;
 	default:
 		textureobstacle = CCTextureCache::sharedTextureCache()->addImage("glass2.png");

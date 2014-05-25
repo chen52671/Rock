@@ -29,12 +29,15 @@ bool GameScene::init()
 	{
 		return false;
 	}
-	mscale = 0.01f;
+	mscale = 0.05f;
 	rockMassTotal=0;
 	rockPercent=100.00;
 	rockMassTotal=0.0;
 	rockgrowing=false;
 	screenSize = CCDirector::sharedDirector()->getVisibleSize();
+	//初始化障碍数组
+	mObstacles = CCArray::create();
+	mObstacles->retain();
 	//开启触摸
 	setTouchEnabled(true);
 	//1 初始化物理世界
@@ -43,13 +46,17 @@ bool GameScene::init()
 	addMap();
 	//把气球放在地面上
 	addBolloon(ccp(200.0,60.0));
-	//把障碍放上
-	addObstacle(0,ccp(140.0,80.0),b2_pi*0.5,b2Vec2(0.2f, 0.2f),0);
-	addObstacle(1,ccp(200.0,100.0),0.0,b2Vec2(0.4f, 0.2f),1);
-	addObstacle(0,ccp(260.0,80.0),b2_pi*0.5,b2Vec2(0.2f, 0.2f),2);
+	//把障碍放上,参数分别为类型，位置，旋转角度，缩放系数（包括x，y），
+	addObstacle(metalTube,ccp(140.0,80.0),b2_pi*0.5,b2Vec2(0.2f, 0.2f));
+	addObstacle(glassRectangle,ccp(200.0,100.0),0.0,b2Vec2(0.4f, 0.2f));
+	addObstacle(metalTube,ccp(260.0,80.0),b2_pi*0.5,b2Vec2(0.2f, 0.2f));
+	addObstacle(woodRectangle,ccp(320.0,80.0),b2_pi*0.7,b2Vec2(0.4f, 0.2f));
 	mRock =new Rock();
-	//
+
+	//添加剩余能量，待修改为即使变动。
 	addRockPercent();
+	//添加暂停按钮
+	addPause();
 	
 	//scheduleUpdate();
 	this->schedule( schedule_selector(GameScene::updateGame) );
@@ -108,31 +115,72 @@ void GameScene::addBolloon(CCPoint pt)
 	addChild(mbolloon);
 
 }
-void GameScene::addObstacle(int type,CCPoint pt,float angle,const b2Vec2& scale,int key)
+void GameScene::addObstacle(_obstacleType type,CCPoint pt,float angle,const b2Vec2& scale)
 {
 	obstacle* mObstacle =obstacle::createObstacle(type,pt,scale);
 
 	CCSize size = mObstacle->getContentSize();//2倍半径
 	
-
+	//统一配置
 	b2BodyDef bodyDef;
+	b2PolygonShape ObstacleShape;
+	b2FixtureDef rockFixtureDef;
+	//
+	switch (type)
+	{
+	case woodTube:
+	case woodRectangle:
+	//Body配置		
 	bodyDef.type = b2_dynamicBody;
 	bodyDef.position = b2Vec2(pt.x/RATIO, pt.y/RATIO);
 	bodyDef.allowSleep = true;
 	bodyDef.angle =angle;
+	//fixture配置
+	ObstacleShape.SetAsBox(size.width/2/RATIO*scale.x,size.height/2/RATIO*scale.y);
+    rockFixtureDef.shape= &ObstacleShape;
+	rockFixtureDef.density=2;
+	rockFixtureDef.restitution = 0.1f;//反弹特性
+	rockFixtureDef.friction=1.0f;
+		break;
+	case glassTube:
+	case glassRectangle:
+			//Body配置		
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position = b2Vec2(pt.x/RATIO, pt.y/RATIO);
+	bodyDef.allowSleep = true;
+	bodyDef.angle =angle;
+	//fixture配置
+	ObstacleShape.SetAsBox(size.width/2/RATIO*scale.x,size.height/2/RATIO*scale.y);
+    rockFixtureDef.shape= &ObstacleShape;
+	rockFixtureDef.density=8;
+	rockFixtureDef.restitution = 0.0f;//反弹特性
+	rockFixtureDef.friction=0.3f;
+
+		break;
+
+	case metalTube:
+	case metalRectangle:
+			//Body配置		
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position = b2Vec2(pt.x/RATIO, pt.y/RATIO);
+	bodyDef.allowSleep = true;
+	bodyDef.angle =angle;
+	//fixture配置
+	ObstacleShape.SetAsBox(size.width/2/RATIO*scale.x,size.height/2/RATIO*scale.y);
+    rockFixtureDef.shape= &ObstacleShape;
+	rockFixtureDef.density=15;
+	rockFixtureDef.restitution = 0.0f;//反弹特性
+	rockFixtureDef.friction=0.3f;
+
+		break;
+	default:
+		break;
+	}
+
+
 
 
 	b2Body *  ObstacleBody= world->CreateBody(&bodyDef);
-
-	b2PolygonShape ObstacleShape;
-
-    ObstacleShape.SetAsBox(size.width/2/RATIO*scale.x,size.height/2/RATIO*scale.y);
-    
-    b2FixtureDef rockFixtureDef;
-    rockFixtureDef.shape= &ObstacleShape;
-	rockFixtureDef.density=3;
-	rockFixtureDef.restitution = 0.0f;//反弹特性
-	rockFixtureDef.friction=1.0f;
 
     ObstacleBody->CreateFixture(&rockFixtureDef);
 
@@ -145,7 +193,7 @@ void GameScene::addObstacle(int type,CCPoint pt,float angle,const b2Vec2& scale,
 	b2MassData massData;
 	ObstacleBody->GetMassData(&massData);
 
-	mObstacles.insert(make_pair(key,mObstacle));
+	mObstacles->addObject(mObstacle);
 }
 
 void GameScene::addRock(float dt,CCPoint pt,float scale)
@@ -168,9 +216,9 @@ void GameScene::addRock(float dt,CCPoint pt,float scale)
     
     b2FixtureDef rockFixtureDef;
     rockFixtureDef.shape= &rockShape;
-	rockFixtureDef.density=10;
+	rockFixtureDef.density=8;
 	rockFixtureDef.restitution = 0.3f;//反弹特性
-	rockFixtureDef.friction=1.0f;
+	rockFixtureDef.friction=0.5f;
 
     rockBody->CreateFixture(&rockFixtureDef);
 
@@ -200,6 +248,24 @@ void GameScene::addRockPercent()
     this->addChild(rockPercentLabel, 1);
 }
 
+void GameScene::addPause()
+{
+
+
+	// 返回主菜单 Item
+	CCMenuItemImage* pauseItem = CCMenuItemImage::create("pause.png","pause.png", this, menu_selector(GameScene::onPause));
+	//itemBack->setFontSize(0.5*itemBack->fontSize());
+
+	//创建menu
+	CCMenu* menu = CCMenu::create(pauseItem,NULL);
+
+
+	addChild(menu);
+    menu->setPosition(ccp(screenSize.width-25, screenSize.height-25));
+}
+
+
+
 void GameScene::registerWithTouchDispatcher()
 {
 	// higher priority than dragging
@@ -208,7 +274,11 @@ void GameScene::registerWithTouchDispatcher()
 }
 bool GameScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
 {
-	if(rockPercent<=0) return true;
+	if(rockPercent<=0) 
+	{
+		showEndMenu();
+		return false;
+	}
 	CCPoint touchLocation = touch->getLocation();    
 
 	touchPoint = convertToNodeSpace( touchLocation );
@@ -223,7 +293,7 @@ bool GameScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
 	//添加到层
 	addChild(fakeRock);
 	//添加scale动作。
-	actionTo = CCScaleTo::create(5.0f, 0.15f);	
+	actionTo = CCScaleTo::create(4.0f, 0.20f);	
 	fakeRock->runAction( actionTo);
 	rockgrowing=true;
 	return true;
@@ -284,6 +354,8 @@ void GameScene::updateGame(float dt){
 }
 
 void GameScene::stopGame(){
+
+	//mObstacles->release();
    //销毁b2body，和对应的sprite
 	 CCSprite *s;
 	    for (b2Body *b = world->GetBodyList(); b!=NULL; b=b->GetNext()) {
@@ -296,6 +368,7 @@ void GameScene::stopGame(){
             world->DestroyBody(b);
         }
     }
+		
 
 		 unscheduleUpdate();
 
@@ -322,24 +395,27 @@ void GameScene::showEndMenu(){
 	//创建menu
 	CCMenu* menu = CCMenu::create(itemRestart,itemNext,itemBack,NULL);
 	//横向排列
-	menu->alignItemsVertically();
+	menu->alignItemsVerticallyWithPadding(40);
 
 	addChild(menu);
     menu->setPosition(ccp(screenSize.width/2, screenSize.height/2));
 
 }
-
+void GameScene::onPause(CCObject* sender)
+{
+	showEndMenu();
+}
 void GameScene::onQuit(CCObject* sender)
 {
 	    CCScene *scene = MenuScene::scene();
 
-		CCDirector::sharedDirector()->pushScene(scene);  
+		CCDirector::sharedDirector()->replaceScene(scene);  
 }
 void GameScene::onRestart(CCObject* sender)
 {
 	    CCScene *scene = GameScene::scene();
 
-    CCDirector::sharedDirector()->pushScene(scene);  
+    CCDirector::sharedDirector()->replaceScene(scene);  
 }
 void GameScene::onNext(CCObject* sender)
 {
