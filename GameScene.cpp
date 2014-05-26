@@ -58,6 +58,9 @@ bool GameScene::init()
 	//添加暂停按钮
 	addPause();
 	
+
+
+
 	//scheduleUpdate();
 	this->schedule( schedule_selector(GameScene::updateGame) );
 
@@ -394,7 +397,7 @@ void GameScene::showEndMenu(){
 
 	//创建menu
 	CCMenu* menu = CCMenu::create(itemRestart,itemNext,itemBack,NULL);
-	//横向排列
+	//竖向排列
 	menu->alignItemsVerticallyWithPadding(40);
 
 	addChild(menu);

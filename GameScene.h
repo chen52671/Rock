@@ -8,7 +8,7 @@
 #include "Map.h"
 #include "obstacle.h"
 #include "Bolloon.h"
-
+#include "Data.h"
 #include <iostream>
 #include   <map> 
 #define RATIO 48.0f

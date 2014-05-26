@@ -61,25 +61,47 @@ bool MenuScene::init()
 
 	//增加一个开始游戏的按钮-BEGIN
 
-    CCMenuItemImage *pStartGame = CCMenuItemImage::create(
-                                        "StartGame1.png",
-                                        "StartGame1.png",
+    CCMenuItemImage *pEasyMode = CCMenuItemImage::create(
+                                        "EasyMode.png",
+                                        "EasyMode.png",
                                         this,
-                                        menu_selector(MenuScene::menuStartGame));
-    
-	pStartGame->setPosition(ccp(origin.x +visibleSize.width/2 ,
-		origin.y +visibleSize.height/2));
+                                        menu_selector(MenuScene::menuEasyMode));
+    CCMenuItemImage *pLaunchMode = CCMenuItemImage::create(
+                                    "LaunchMode.png",
+                                    "LaunchMode.png",
+                                    this,
+                                    menu_selector(MenuScene::menuLaunchMode));
+	CCMenuItemImage *pMapEdit = CCMenuItemImage::create(
+								"MapEdit.png",
+								"MapEdit.png",
+								this,
+								menu_selector(MenuScene::menuMapEdit));
+	CCMenuItemImage *pSetting = CCMenuItemImage::create(
+                            "Setting.png",
+                            "Setting.png",
+                            this,
+                            menu_selector(MenuScene::menuSetting));
 
-    CCMenu* pStart = CCMenu::create(pStartGame, NULL);
-    pStart->setPosition(CCPointZero);
+
+    CCMenu* pStart = CCMenu::create(pEasyMode,pLaunchMode,pMapEdit,pSetting, NULL);
+	pStart->alignItemsVerticallyWithPadding(40);
+
+	 CCSize screenSize=CCDirector::sharedDirector()->getVisibleSize();
+    pStart->setPosition(ccp(screenSize.width/2, screenSize.height/2));
+
     this->addChild(pStart, 1);
 
-	//增加一个开始游戏的按钮_END
+	//测试数据库功能—begin
+	Data::DBinit();
+	Data::DBSetItem("GameName_cn","Bolloon Rescue");
+	const char* ret_val;
+	ret_val = Data::DBGetItem("GameName_cn");
+	CCLabelTTF* pLabel = CCLabelTTF::create(ret_val, "Arial", TITLE_FONT_SIZE);
 
-
+	//测试数据库功能-end
   
     
-    CCLabelTTF* pLabel = CCLabelTTF::create("Bolloon Rescue", "Arial", TITLE_FONT_SIZE);
+   // CCLabelTTF* pLabel = CCLabelTTF::create("Bolloon Rescue", "Arial", TITLE_FONT_SIZE);
     
     // position the label on the center of the screen
     pLabel->setPosition(ccp(origin.x + visibleSize.width/2,
@@ -100,7 +122,8 @@ bool MenuScene::init()
     return true;
 
 }
-void MenuScene::menuStartGame(CCObject* pSender)
+
+void MenuScene::menuEasyMode(CCObject* pSender)
 {
     CCScene * pScene =  GameScene::scene();
     if (pScene)
@@ -110,6 +133,22 @@ void MenuScene::menuStartGame(CCObject* pSender)
       //  pScene->release();
     }
 }
+void MenuScene::menuLaunchMode(CCObject* pSender)
+{
+
+}
+void MenuScene::menuMapEdit(CCObject* pSender)
+{
+
+}
+void MenuScene::menuSetting(CCObject* pSender)
+{
+
+}
+
+
+
+
 
 void MenuScene::menuCloseCallback(CCObject* pSender)
 {
