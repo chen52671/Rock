@@ -15,6 +15,7 @@ CCScene* EditScene::scene()
 	// add layer as a child to scene
 	scene->addChild(layer);
 
+
 	// return the scene
 	return scene;
 }
@@ -61,6 +62,7 @@ bool EditScene::init()
 	mRectangle_D->setOpacity(255);
 	mCircle_D->setOpacity(128); 
 	mTriangle_D->setOpacity(128); 
+	this->drawShape=RECTANGLE;
 
 
 	CCMenu* menu = CCMenu::create(mRectangle_D,mCircle_D,mTriangle_D, NULL);
@@ -72,8 +74,10 @@ bool EditScene::init()
 
 	this->addChild(menu, 1);
 
-
-
+	//增加一个layer，作为child，其中包括3个材质的menu，第一排的menu，触发该layer的修改。
+	// 'layer' is an autorelease object
+	MenuLayer *menuLayer = MenuLayer::create();
+	this->addChild(menuLayer);
 
 
 	return true;
@@ -89,6 +93,9 @@ void EditScene::rectangleSetting(CCObject* sender)
 		mCircle_D->setOpacity(128); 
 		mTriangle_D->setOpacity(128); 
 		this->drawShape=RECTANGLE;
+
+		//第二排增加材质menu，
+
 	}
 	
 }
@@ -130,4 +137,76 @@ void EditScene::menuCloseCallback(CCObject* pSender)
 #endif
 #endif
 
+}
+
+
+bool MenuLayer::init()
+{
+	//////////////////////////////
+	// 1. super init first
+	if ( !CCLayer::init() )
+	{
+		return false;
+	}
+	//增加第二排menu
+	mMetal = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::MetalSetting));
+	mGlass = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::GlassSetting));
+	mWood = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::WoodSetting));
+	//默认使用metal
+	mMetal->setOpacity(255);
+	mGlass->setOpacity(128); 
+	mWood->setOpacity(128); 
+	this->drawMaterial=METAL;
+
+
+	CCMenu* menu = CCMenu::create(mMetal,mGlass,mWood, NULL);
+	menu->alignItemsHorizontallyWithPadding(80);
+
+	CCSize screenSize=CCDirector::sharedDirector()->getVisibleSize();
+	menu->setPosition(ccp(screenSize.width/2, screenSize.height-100));
+
+
+	this->addChild(menu, 1);
+
+	return true;
+}
+
+
+void MenuLayer::MetalSetting(CCObject* sender)
+{
+	if( mMetal->getOpacity() == 128 )
+	{
+		mMetal->setOpacity(255);
+		mGlass->setOpacity(128); 
+		mWood->setOpacity(128); 
+		this->drawMaterial=METAL;
+
+		//第二排增加材质menu，
+
+	}
+	
+}
+
+void MenuLayer::GlassSetting(CCObject* sender)
+{	
+	if( mGlass->getOpacity() == 128 )
+	{
+		mMetal->setOpacity(128);
+		mGlass->setOpacity(255); 
+		mWood->setOpacity(128); 
+		this->drawMaterial=GLASS;
+	}
+	
+}
+
+void MenuLayer::WoodSetting(CCObject* sender)
+{
+	if( mWood->getOpacity() == 128 )
+	{
+		mMetal->setOpacity(128);
+		mGlass->setOpacity(128); 
+		mWood->setOpacity(255); 
+		this->drawMaterial=WOOD;
+	}
+	
 }
