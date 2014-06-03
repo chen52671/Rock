@@ -29,15 +29,30 @@ public:
 	virtual bool init();  
 	CREATE_FUNC(MenuLayer);
 	_drawMaterial drawMaterial;
-	
-	void MetalSetting(CCObject* pSender);
-	void GlassSetting(CCObject* pSender);
-	void WoodSetting(CCObject* pSender);
+
+	void MetalSettingR(CCObject* pSender);
+	void GlassSettingR(CCObject* pSender);
+	void WoodSettingR(CCObject* pSender);
+	void MetalSettingC(CCObject* pSender);
+	void GlassSettingC(CCObject* pSender);
+	void WoodSettingC(CCObject* pSender);
+	void MetalSettingT(CCObject* pSender);
+	void GlassSettingT(CCObject* pSender);
+	void WoodSettingT(CCObject* pSender);
+	void showRec();
+	void showCircle();
+	void showTriangle();
 protected:
-	CCMenuItemImage *mMetal;
-	CCMenuItemImage *mGlass;
-	CCMenuItemImage *mWood;
-	
+	CCMenuItemImage *mMetal_R;
+	CCMenuItemImage *mGlass_R;
+	CCMenuItemImage *mWood_R;
+	CCMenuItemImage *mMetal_C;
+	CCMenuItemImage *mGlass_C;
+	CCMenuItemImage *mWood_C;
+	CCMenuItemImage *mMetal_T;
+	CCMenuItemImage *mGlass_T;
+	CCMenuItemImage *mWood_T;
+
 };
 
 class EditScene : public cocos2d::CCLayer
@@ -54,13 +69,18 @@ public:
 	void triangleSetting(CCObject* pSender);
 	// a selector callback
 	virtual void menuCloseCallback(cocos2d::CCObject* pSender);
-	MenuLayer *menuLayer;
+	//÷ÿ–¥¥•∆¡∑Ω∑®
+	virtual void registerWithTouchDispatcher();
+	virtual bool ccTouchBegan(CCTouch* touch, CCEvent* event);
+	virtual void ccTouchEnded(CCTouch* touch, CCEvent* event);
+
+	//MenuLayer *menuLayer;
 protected:
 	CCMenuItemImage *mRectangle_D;
 	CCMenuItemImage *mCircle_D;
 	CCMenuItemImage *mTriangle_D;
 	_drawShape drawShape;
-	
+
 
 };
 

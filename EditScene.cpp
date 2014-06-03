@@ -77,8 +77,10 @@ bool EditScene::init()
 	//增加一个layer，作为child，其中包括3个材质的menu，第一排的menu，触发该layer的修改。
 	// 'layer' is an autorelease object
 	MenuLayer *menuLayer = MenuLayer::create();
-	this->addChild(menuLayer);
 
+	this->addChild(menuLayer,1,1);
+
+	//横竖方向增加2个slider。调节物体的x，y方向的scale。
 
 	return true;
 }
@@ -94,10 +96,12 @@ void EditScene::rectangleSetting(CCObject* sender)
 		mTriangle_D->setOpacity(128); 
 		this->drawShape=RECTANGLE;
 
-		//第二排增加材质menu，
+		//修改MenuLayer的图片都为矩形。
+		MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
+		menuLayer->showRec();
 
 	}
-	
+
 }
 
 void EditScene::circleSetting(CCObject* sender)
@@ -108,8 +112,11 @@ void EditScene::circleSetting(CCObject* sender)
 		mCircle_D->setOpacity(255); 
 		mTriangle_D->setOpacity(128); 
 		this->drawShape=CIRLE;
+		//修改MenuLayer的图片都为圆形。
+		MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
+		menuLayer->showCircle();
 	}
-	
+
 }
 
 void EditScene::triangleSetting(CCObject* sender)
@@ -120,10 +127,29 @@ void EditScene::triangleSetting(CCObject* sender)
 		mCircle_D->setOpacity(128); 
 		mTriangle_D->setOpacity(255); 
 		this->drawShape=TRIANGLE;
+		//修改MenuLayer的图片都为三角形。
+		MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
+		menuLayer->showTriangle();
 	}
-	
+
 }
 
+void EditScene::registerWithTouchDispatcher()
+{
+	// higher priority than dragging
+	CCDirector* pDirector = CCDirector::sharedDirector();
+	pDirector->getTouchDispatcher()->addTargetedDelegate(this, -10, true);
+}
+bool EditScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
+{
+
+	return true;
+}
+void EditScene::ccTouchEnded(CCTouch* touch, CCEvent* event)
+{
+
+
+}
 
 void EditScene::menuCloseCallback(CCObject* pSender)
 {
@@ -140,6 +166,12 @@ void EditScene::menuCloseCallback(CCObject* pSender)
 }
 
 
+
+
+
+
+
+
 bool MenuLayer::init()
 {
 	//////////////////////////////
@@ -149,64 +181,201 @@ bool MenuLayer::init()
 		return false;
 	}
 	//增加第二排menu
-	mMetal = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::MetalSetting));
-	mGlass = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::GlassSetting));
-	mWood = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::WoodSetting));
-	//默认使用metal
-	mMetal->setOpacity(255);
-	mGlass->setOpacity(128); 
-	mWood->setOpacity(128); 
+	mMetal_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::MetalSettingR));
+	mGlass_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingR));
+	mWood_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingR));
+	
+	//默认使用metal 矩形
+	mMetal_R->setOpacity(255);
+	mGlass_R->setOpacity(128); 
+	mWood_R->setOpacity(128); 
 	this->drawMaterial=METAL;
 
 
-	CCMenu* menu = CCMenu::create(mMetal,mGlass,mWood, NULL);
+	CCMenu* menu = CCMenu::create(mMetal_R,mGlass_R,mWood_R, NULL);
 	menu->alignItemsHorizontallyWithPadding(80);
 
 	CCSize screenSize=CCDirector::sharedDirector()->getVisibleSize();
 	menu->setPosition(ccp(screenSize.width/2, screenSize.height-100));
 
 
-	this->addChild(menu, 1);
+	this->addChild(menu, 1,0);
 
 	return true;
 }
 
-
-void MenuLayer::MetalSetting(CCObject* sender)
+//矩形
+void MenuLayer::MetalSettingR(CCObject* sender)
 {
-	if( mMetal->getOpacity() == 128 )
+	if( this->mMetal_R->getOpacity() == 128 )
 	{
-		mMetal->setOpacity(255);
-		mGlass->setOpacity(128); 
-		mWood->setOpacity(128); 
+		this->mMetal_R->setOpacity(255);
+		this->mGlass_R->setOpacity(128);
+		this->mWood_R->setOpacity(128);
+		this->drawMaterial=METAL;
+
+		//第二排增加材质menu，
+
+
+	}
+
+}
+
+void MenuLayer::GlassSettingR(CCObject* sender)
+{	
+	if( this->mGlass_R->getOpacity() == 128 )
+	{
+		this->mMetal_R->setOpacity(128);
+		this->mGlass_R->setOpacity(255);
+		this->mWood_R->setOpacity(128);
+		this->drawMaterial=GLASS;
+	}
+
+}
+
+void MenuLayer::WoodSettingR(CCObject* sender)
+{
+	if(this-> mWood_R->getOpacity() == 128 )
+	{
+		this->mMetal_R->setOpacity(128);
+		this->mGlass_R->setOpacity(128);
+		this->mWood_R->setOpacity(255);
+		this->drawMaterial=WOOD;
+	}
+
+}
+
+//圆形
+
+void MenuLayer::MetalSettingC(CCObject* sender)
+{
+	if( this->mMetal_C->getOpacity() == 128 )
+	{
+		this->mMetal_C->setOpacity(255);
+		this->mGlass_C->setOpacity(128);
+		this->mWood_C->setOpacity(128);
 		this->drawMaterial=METAL;
 
 		//第二排增加材质menu，
 
 	}
-	
+
 }
 
-void MenuLayer::GlassSetting(CCObject* sender)
+void MenuLayer::GlassSettingC(CCObject* sender)
 {	
-	if( mGlass->getOpacity() == 128 )
+	if(this-> mGlass_C->getOpacity() == 128 )
 	{
-		mMetal->setOpacity(128);
-		mGlass->setOpacity(255); 
-		mWood->setOpacity(128); 
+		this->mMetal_C->setOpacity(128);
+		this->mGlass_C->setOpacity(255);
+		this->mWood_C->setOpacity(128);
 		this->drawMaterial=GLASS;
 	}
-	
+
 }
 
-void MenuLayer::WoodSetting(CCObject* sender)
+void MenuLayer::WoodSettingC(CCObject* sender)
 {
-	if( mWood->getOpacity() == 128 )
+	if(this-> mWood_C->getOpacity() == 128 )
 	{
-		mMetal->setOpacity(128);
-		mGlass->setOpacity(128); 
-		mWood->setOpacity(255); 
+		this->mMetal_C->setOpacity(128);
+		this->mGlass_C->setOpacity(128);
+		this->mWood_C->setOpacity(255);
 		this->drawMaterial=WOOD;
 	}
+
+}
+//三角形
+
+void MenuLayer::MetalSettingT(CCObject* sender)
+{
+	if(this-> mMetal_T->getOpacity() == 128 )
+	{
+		this->mMetal_T->setOpacity(255);
+		this->mGlass_T->setOpacity(128);
+		this->mWood_T->setOpacity(128);
+		this->drawMaterial=METAL;
+
+		//第二排增加材质menu，
+
+	}
+
+}
+
+void MenuLayer::GlassSettingT(CCObject* sender)
+{	
+	if( this->mGlass_T->getOpacity() == 128 )
+	{
+		this->mMetal_T->setOpacity(128);
+		this->mGlass_T->setOpacity(255);
+		this->mWood_T->setOpacity(128);
+		this->drawMaterial=GLASS;
+	}
+
+}
+
+void MenuLayer::WoodSettingT(CCObject* sender)
+{
+	if(this-> mWood_T->getOpacity() == 128 )
+	{
+		this->mMetal_T->setOpacity(128);
+		this->mGlass_T->setOpacity(128);
+		this->mWood_T->setOpacity(255);
+		this->drawMaterial=WOOD;
+	}
+
+}
+
+
+void MenuLayer::showRec()
+{
+	this->removeChildByTag(0);
+
+	mMetal_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::MetalSettingR));
+	mGlass_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingR));
+	mWood_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingR));
+
+	CCMenu* menu = CCMenu::create(this->mMetal_R,this->mGlass_R,this->mWood_R, NULL);
+	menu->alignItemsHorizontallyWithPadding(80);
+
+	CCSize screenSize=CCDirector::sharedDirector()->getVisibleSize();
+	menu->setPosition(ccp(screenSize.width/2, screenSize.height-100));
+
+
+	this->addChild(menu, 1,0);
+
+}
+void MenuLayer::showCircle()
+{
+
+	this->removeChildByTag(0);
+
+	mMetal_C = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::MetalSettingC));
+	mGlass_C = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingC));
+	mWood_C = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingC));
 	
+	CCMenu* menu = CCMenu::create(this->mMetal_C,this->mGlass_C,this->mWood_C, NULL);
+	menu->alignItemsHorizontallyWithPadding(80);
+
+	CCSize screenSize=CCDirector::sharedDirector()->getVisibleSize();
+	menu->setPosition(ccp(screenSize.width/2, screenSize.height-100));
+
+
+	this->addChild(menu, 1,0);
+}
+void MenuLayer::showTriangle()
+{
+	this->removeChildByTag(0);
+
+	mMetal_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::MetalSettingT));
+	mGlass_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingT));
+	mWood_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingT));
+	CCMenu* menu = CCMenu::create(this->mMetal_T,this->mGlass_T,this->mWood_T, NULL);
+	menu->alignItemsHorizontallyWithPadding(80);
+
+	CCSize screenSize=CCDirector::sharedDirector()->getVisibleSize();
+	menu->setPosition(ccp(screenSize.width/2, screenSize.height-100));
+
+
+	this->addChild(menu, 1,0);
 }
