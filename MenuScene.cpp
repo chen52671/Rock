@@ -3,6 +3,8 @@
 #include "SimpleAudioEngine.h"
 #include "AppMacros.h"
 #include "GameScene.h"
+#include "EditScene.h"
+
 using namespace cocos2d;
 
 
@@ -139,7 +141,13 @@ void MenuScene::menuLaunchMode(CCObject* pSender)
 }
 void MenuScene::menuMapEdit(CCObject* pSender)
 {
-
+	    CCScene * pScene =  EditScene::scene();
+    if (pScene)
+    {
+		CCDirector::sharedDirector()->replaceScene(pScene);
+	//因为pScene本来在创建的时候就是autorelease的。所以不能再release了，否则下次切换场景的时候崩溃。
+      //  pScene->release();
+    }
 }
 void MenuScene::menuSetting(CCObject* pSender)
 {

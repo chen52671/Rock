@@ -33,7 +33,7 @@ public:
 protected:
 	bool Dead;
 	float weight;
-
+	enum _obstacleType obstacleType;
 
 };
 

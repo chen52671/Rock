@@ -49,6 +49,7 @@ public:
 	CCPoint touchPoint;
 	long beginTime;
 	long endTime;
+	//Ëõ·ÅÏµÊý
 	double mscale;
 	bool rockgrowing;
 	Map *mMap;

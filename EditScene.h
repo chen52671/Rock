@@ -15,14 +15,32 @@
 //必须使用这个cocos2d::extension命名空间来使用CCPhysicsSprite
 USING_NS_CC_EXT;
 USING_NS_CC;
- using   namespace   std; 
+using   namespace   std; 
+enum _drawShape{
+	RECTANGLE,
+	CIRLE,
+	TRIANGLE
+};
+
 class EditScene : public cocos2d::CCLayer
 {
+public:
 	virtual bool init();  
 	static cocos2d::CCScene* scene();
 	    // implement the "static node()" method manually
     CREATE_FUNC(EditScene);
-private:
+
+
+	 void rectangleSetting(CCObject* pSender);
+	 void circleSetting(CCObject* pSender);
+	 void triangleSetting(CCObject* pSender);
+		// a selector callback
+	virtual void menuCloseCallback(cocos2d::CCObject* pSender);
+protected:
+	CCMenuItemImage *mRectangle_D;
+	CCMenuItemImage *mCircle_D;
+	CCMenuItemImage *mTriangle_D;
+	_drawShape drawShape;
 
 
 };

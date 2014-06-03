@@ -15,7 +15,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
     // initialize director
     CCDirector* pDirector = CCDirector::sharedDirector();
     CCEGLView* pEGLView = CCEGLView::sharedOpenGLView();
-	pEGLView->setFrameSize(360,640);
+	//windows版本设置。Android版本不设置
+	pEGLView->setFrameSize(800,1000);
 	//pEGLView->setDesignResolutionSize
     pDirector->setOpenGLView(pEGLView);
 	
