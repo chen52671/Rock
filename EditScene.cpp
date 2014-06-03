@@ -80,7 +80,8 @@ bool EditScene::init()
 
 	this->addChild(menuLayer,1,1);
 
-	//横竖方向增加2个slider。调节物体的x，y方向的scale。
+	//横竖方向增加2个slider。调节物体的x，y方向的scale。参考GUI的slider例子
+
 
 	return true;
 }
@@ -142,12 +143,17 @@ void EditScene::registerWithTouchDispatcher()
 }
 bool EditScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
 {
-
+	//在触点处，放置一个已定的形状和材质的sprite。在update中按照放大系数放大。并计算其质量。
 	return true;
 }
 void EditScene::ccTouchEnded(CCTouch* touch, CCEvent* event)
 {
 
+
+}
+
+void EditScene::updateGame(float dt)
+{
 
 }
 
@@ -335,6 +341,25 @@ void MenuLayer::showRec()
 	mGlass_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingR));
 	mWood_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingR));
 
+	//先都不选中
+	mMetal_R->setOpacity(128);
+	mGlass_R->setOpacity(128); 
+	mWood_R->setOpacity(128); 
+	//根据当前材料判断
+	switch (this->drawMaterial)
+	{
+	case METAL:
+		mMetal_R->setOpacity(255);
+		break;
+	case GLASS:
+		mGlass_R->setOpacity(255); 
+		break;
+	case WOOD:
+		mWood_R->setOpacity(255); 
+		break;
+	default:
+		break;
+	}
 	CCMenu* menu = CCMenu::create(this->mMetal_R,this->mGlass_R,this->mWood_R, NULL);
 	menu->alignItemsHorizontallyWithPadding(80);
 
@@ -354,6 +379,25 @@ void MenuLayer::showCircle()
 	mGlass_C = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingC));
 	mWood_C = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingC));
 	
+		//先都不选中
+	mMetal_C->setOpacity(128);
+	mGlass_C->setOpacity(128); 
+	mWood_C->setOpacity(128); 
+	//根据当前材料判断
+	switch (this->drawMaterial)
+	{
+	case METAL:
+		mMetal_C->setOpacity(255);
+		break;
+	case GLASS:
+		mGlass_C->setOpacity(255); 
+		break;
+	case WOOD:
+		mWood_C->setOpacity(255); 
+		break;
+	default:
+		break;
+	}
 	CCMenu* menu = CCMenu::create(this->mMetal_C,this->mGlass_C,this->mWood_C, NULL);
 	menu->alignItemsHorizontallyWithPadding(80);
 
@@ -370,6 +414,25 @@ void MenuLayer::showTriangle()
 	mMetal_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::MetalSettingT));
 	mGlass_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingT));
 	mWood_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingT));
+			//先都不选中
+	mMetal_T->setOpacity(128);
+	mGlass_T->setOpacity(128); 
+	mWood_T->setOpacity(128); 
+	//根据当前材料判断
+	switch (this->drawMaterial)
+	{
+	case METAL:
+		mMetal_T->setOpacity(255);
+		break;
+	case GLASS:
+		mGlass_T->setOpacity(255); 
+		break;
+	case WOOD:
+		mWood_T->setOpacity(255); 
+		break;
+	default:
+		break;
+	}
 	CCMenu* menu = CCMenu::create(this->mMetal_T,this->mGlass_T,this->mWood_T, NULL);
 	menu->alignItemsHorizontallyWithPadding(80);
 

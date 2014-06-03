@@ -73,8 +73,8 @@ public:
 	virtual void registerWithTouchDispatcher();
 	virtual bool ccTouchBegan(CCTouch* touch, CCEvent* event);
 	virtual void ccTouchEnded(CCTouch* touch, CCEvent* event);
-
-	//MenuLayer *menuLayer;
+	void updateGame(float dt);
+	
 protected:
 	CCMenuItemImage *mRectangle_D;
 	CCMenuItemImage *mCircle_D;
