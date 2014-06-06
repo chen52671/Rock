@@ -1,6 +1,7 @@
 #include "EditScene.h"
 #include <stdlib.h>
 #include "AppMacros.h"
+#include "MenuScene.h"
 
 USING_NS_CC;
 
@@ -41,10 +42,10 @@ bool EditScene::init()
 		"CloseNormal.png",
 		"CloseSelected.png",
 		this,
-		menu_selector(EditScene::menuCloseCallback));
+		menu_selector(EditScene::menuBackCallback));
 
 	pCloseItem->setPosition(ccp(origin.x + visibleSize.width - pCloseItem->getContentSize().width/2 ,
-		origin.y + pCloseItem->getContentSize().height/2));
+		origin.y + visibleSize.height - pCloseItem->getContentSize().height/2));
 
 	// create menu, it's an autorelease object
 	CCMenu* pMenu = CCMenu::create(pCloseItem, NULL);
@@ -81,12 +82,95 @@ bool EditScene::init()
 	this->addChild(menuLayer,1,1);
 
 	//横竖方向增加2个slider。调节物体的x，y方向的scale。参考GUI的slider例子
-
+	this->addSliders();
 
 	return true;
 }
 
+void  EditScene::addSliders()
+{
+	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
+	m_pUiLayer = UILayer::create();
+	this->addChild(m_pUiLayer);
+	// Create the 横向 slider
+	m_pDisplayValueLabel_H = UILabel::create();
+	m_pDisplayValueLabel_H->setText("Move the slider thumb");
+	m_pDisplayValueLabel_H->setFontName("Marker Felt");
+	m_pDisplayValueLabel_H->setFontSize(32);
+	m_pDisplayValueLabel_H->setAnchorPoint(ccp(0.5f, -1));
+	m_pDisplayValueLabel_H->setPosition(ccp(origin.x + visibleSize.width/2 ,origin.y + visibleSize.height*4/5+15));
+	m_pUiLayer->addWidget(m_pDisplayValueLabel_H);
+
+
+	MySlider* slider = MySlider::create();
+	slider->setVertical(false);
+	slider->setTouchEnabled(true);
+	slider->loadBarTexture("sliderTrack.png");
+	slider->loadSlidBallTextures("sliderThumb.png", "sliderThumb.png", "");
+	slider->loadProgressBarTexture("sliderProgress.png");
+	slider->setPosition(ccp(origin.x + visibleSize.width/2 ,origin.y + visibleSize.height*4/5));
+
+	slider->addEventListenerSlider(this, sliderpercentchangedselector(EditScene::sliderEvent));
+	m_pUiLayer->addWidget(slider);
+
+	//增加纵向slider 
+	m_pDisplayValueLabel_V = UILabel::create();
+	m_pDisplayValueLabel_V->setText("Move the slider thumb");
+	m_pDisplayValueLabel_V->setFontName("Marker Felt");
+	m_pDisplayValueLabel_V->setFontSize(32);
+	m_pDisplayValueLabel_V->setAnchorPoint(ccp(0.5f, -1));
+	m_pDisplayValueLabel_V->setRotation(-90);
+	m_pDisplayValueLabel_V->setPosition(ccp(origin.x + visibleSize.width*1/8 +15 ,origin.y + visibleSize.height/2));
+	m_pUiLayer->addWidget(m_pDisplayValueLabel_V);
+
+	slider = MySlider::create();
+	slider->setVertical(true);//这个是关键
+	slider->setTouchEnabled(true);
+	slider->loadBarTexture("sliderTrack2.png");
+	slider->loadSlidBallTextures("sliderThumb.png", "sliderThumb.png", "");
+	slider->loadProgressBarTexture("sliderProgress2.png");
+	slider->setPosition(ccp(origin.x + visibleSize.width*1/8 ,origin.y + visibleSize.height/2));
+
+	slider->addEventListenerSlider(this, sliderpercentchangedselector(EditScene::sliderEvent2));
+	m_pUiLayer->addWidget(slider);
+
+}
+
+void EditScene::sliderEvent(CCObject *pSender, SliderEventType type)
+{
+	switch (type)
+	{
+	case SLIDER_PERCENTCHANGED:
+		{
+			MySlider* slider = dynamic_cast<MySlider*>(pSender);
+			int percent = slider->getPercent();
+			m_pDisplayValueLabel_H->setText(CCString::createWithFormat("Percent %d", percent)->getCString());
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
+void EditScene::sliderEvent2(CCObject *pSender, SliderEventType type)
+{
+	switch (type)
+	{
+	case SLIDER_PERCENTCHANGED:
+		{
+			MySlider* slider = dynamic_cast<MySlider*>(pSender);
+			int percent = slider->getPercent();
+			m_pDisplayValueLabel_V->setText(CCString::createWithFormat("Percent %d", percent)->getCString());
+		}
+		break;
+
+	default:
+		break;
+	}
+}
 
 void EditScene::rectangleSetting(CCObject* sender)
 {
@@ -157,17 +241,11 @@ void EditScene::updateGame(float dt)
 
 }
 
-void EditScene::menuCloseCallback(CCObject* pSender)
+void EditScene::menuBackCallback(CCObject* pSender)
 {
-	// "close" menu item clicked
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT) || (CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
-	CCMessageBox("You pressed the close button. Windows Store Apps do not implement a close button.","Alert");
-#else
-	CCDirector::sharedDirector()->end();
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
-	exit(0);
-#endif
-#endif
+	CCScene *scene = MenuScene::scene();
+
+	CCDirector::sharedDirector()->replaceScene(scene);  
 
 }
 
@@ -190,7 +268,7 @@ bool MenuLayer::init()
 	mMetal_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::MetalSettingR));
 	mGlass_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingR));
 	mWood_R = CCMenuItemImage::create("Rec_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingR));
-	
+
 	//默认使用metal 矩形
 	mMetal_R->setOpacity(255);
 	mGlass_R->setOpacity(128); 
@@ -378,8 +456,8 @@ void MenuLayer::showCircle()
 	mMetal_C = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::MetalSettingC));
 	mGlass_C = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingC));
 	mWood_C = CCMenuItemImage::create("circle_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingC));
-	
-		//先都不选中
+
+	//先都不选中
 	mMetal_C->setOpacity(128);
 	mGlass_C->setOpacity(128); 
 	mWood_C->setOpacity(128); 
@@ -414,7 +492,7 @@ void MenuLayer::showTriangle()
 	mMetal_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::MetalSettingT));
 	mGlass_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::GlassSettingT));
 	mWood_T = CCMenuItemImage::create("Tri_D.png",NULL,this,menu_selector(MenuLayer::WoodSettingT));
-			//先都不选中
+	//先都不选中
 	mMetal_T->setOpacity(128);
 	mGlass_T->setOpacity(128); 
 	mWood_T->setOpacity(128); 

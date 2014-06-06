@@ -4,12 +4,13 @@
 #include "cocos2d.h"
 #include "Box2D\Box2D.h"
 #include "cocos-ext.h"
-
+#include "MySlider.h"
 #include <iostream>
 #define RATIO 48.0f
 //必须使用这个cocos2d::extension命名空间来使用CCPhysicsSprite
 USING_NS_CC_EXT;
 USING_NS_CC;
+using namespace ui;//使用slider插件
 using   namespace   std; 
 enum _drawShape{
 	RECTANGLE,
@@ -68,18 +69,24 @@ public:
 	void circleSetting(CCObject* pSender);
 	void triangleSetting(CCObject* pSender);
 	// a selector callback
-	virtual void menuCloseCallback(cocos2d::CCObject* pSender);
+	virtual void menuBackCallback(cocos2d::CCObject* pSender);
 	//重写触屏方法
 	virtual void registerWithTouchDispatcher();
 	virtual bool ccTouchBegan(CCTouch* touch, CCEvent* event);
 	virtual void ccTouchEnded(CCTouch* touch, CCEvent* event);
 	void updateGame(float dt);
+	void addSliders();
+	void sliderEvent(CCObject* pSender, SliderEventType type);
+	void sliderEvent2(CCObject* pSender, SliderEventType type);
 	
 protected:
 	CCMenuItemImage *mRectangle_D;
 	CCMenuItemImage *mCircle_D;
 	CCMenuItemImage *mTriangle_D;
 	_drawShape drawShape;
+	UILayer *m_pUiLayer;
+	UILabel* m_pDisplayValueLabel_H;
+	UILabel* m_pDisplayValueLabel_V;
 
 
 };
