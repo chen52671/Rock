@@ -5,23 +5,15 @@
 #include "Box2D\Box2D.h"
 #include "cocos-ext.h"
 #include "MySlider.h"
+#include "obstacle.h"
 #include <iostream>
+
 #define RATIO 48.0f
 //必须使用这个cocos2d::extension命名空间来使用CCPhysicsSprite
 USING_NS_CC_EXT;
 USING_NS_CC;
 using namespace ui;//使用slider插件
 using   namespace   std; 
-enum _drawShape{
-	RECTANGLE,
-	CIRLE,
-	TRIANGLE
-};
-enum _drawMaterial{
-	METAL,
-	GLASS,
-	WOOD
-};
 
 
 class MenuLayer : public cocos2d::CCLayer
@@ -30,6 +22,7 @@ public:
 	virtual bool init();  
 	CREATE_FUNC(MenuLayer);
 	_drawMaterial drawMaterial;
+
 
 	void MetalSettingR(CCObject* pSender);
 	void GlassSettingR(CCObject* pSender);
@@ -59,6 +52,10 @@ protected:
 class EditScene : public cocos2d::CCLayer
 {
 public:
+
+	EditScene();
+	~EditScene();
+
 	virtual bool init();  
 	static cocos2d::CCScene* scene();
 	// implement the "static node()" method manually
@@ -74,11 +71,17 @@ public:
 	virtual void registerWithTouchDispatcher();
 	virtual bool ccTouchBegan(CCTouch* touch, CCEvent* event);
 	virtual void ccTouchEnded(CCTouch* touch, CCEvent* event);
+	
 	void updateGame(float dt);
 	void addSliders();
 	void sliderEvent(CCObject* pSender, SliderEventType type);
 	void sliderEvent2(CCObject* pSender, SliderEventType type);
 	
+	void initWorld();
+	void addObstacle(obstacle* mObstacle);
+	b2World *world;
+	CCPoint origin;
+	CCSize visibleSize;
 protected:
 	CCMenuItemImage *mRectangle_D;
 	CCMenuItemImage *mCircle_D;
@@ -87,7 +90,8 @@ protected:
 	UILayer *m_pUiLayer;
 	UILabel* m_pDisplayValueLabel_H;
 	UILabel* m_pDisplayValueLabel_V;
-
+	MenuLayer*menuLayer;
+	CCArray *_Obstacle; //保存所有障碍物的数组
 
 };
 

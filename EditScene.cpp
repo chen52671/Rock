@@ -5,6 +5,20 @@
 
 USING_NS_CC;
 
+EditScene::EditScene():
+	_Obstacle(NULL)
+{
+
+}
+EditScene::~EditScene()
+{
+	if (_Obstacle)
+	{
+		_Obstacle->release();
+		_Obstacle = NULL;
+	}
+}
+
 CCScene* EditScene::scene()
 {
 	// 'scene' is an autorelease object
@@ -30,14 +44,20 @@ bool EditScene::init()
 	{
 		return false;
 	}
+
+	_Obstacle= new CCArray;//初始化障碍物数组。
 	//界面不加b2world，只有obstacle和bolloon的精灵，并记录精灵参数，需要的时候，使用obstacle和bolloon类来创建物理精灵
 	//绘制绘图编辑界面。
 	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
 	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
+	//开启触摸
+	setTouchEnabled(true);
 
+	//1 初始化物理世界，重力为0
+	initWorld();
 
-	// 增加返回按钮
+	// 增加返回按钮-稍后改为暂停
 	CCMenuItemImage *pCloseItem = CCMenuItemImage::create(
 		"CloseNormal.png",
 		"CloseSelected.png",
@@ -77,30 +97,37 @@ bool EditScene::init()
 
 	//增加一个layer，作为child，其中包括3个材质的menu，第一排的menu，触发该layer的修改。
 	// 'layer' is an autorelease object
-	MenuLayer *menuLayer = MenuLayer::create();
+	menuLayer = MenuLayer::create();
 
-	this->addChild(menuLayer,1,1);
+	this->addChild(menuLayer,2,1);
 
 	//横竖方向增加2个slider。调节物体的x，y方向的scale。参考GUI的slider例子
 	this->addSliders();
+
+
+	
+	//scheduleUpdate();
+	this->schedule( schedule_selector(EditScene::updateGame) );
+
 
 	return true;
 }
 
 void  EditScene::addSliders()
 {
-	CCSize visibleSize = CCDirector::sharedDirector()->getVisibleSize();
-	CCPoint origin = CCDirector::sharedDirector()->getVisibleOrigin();
+	visibleSize = CCDirector::sharedDirector()->getVisibleSize();
+	origin = CCDirector::sharedDirector()->getVisibleOrigin();
 
 	m_pUiLayer = UILayer::create();
-	this->addChild(m_pUiLayer);
+	//把zorder设为100，这样滑块不会被物体阻挡。
+	this->addChild(m_pUiLayer,100);
 	// Create the 横向 slider
 	m_pDisplayValueLabel_H = UILabel::create();
 	m_pDisplayValueLabel_H->setText("Move the slider thumb");
 	m_pDisplayValueLabel_H->setFontName("Marker Felt");
 	m_pDisplayValueLabel_H->setFontSize(32);
-	m_pDisplayValueLabel_H->setAnchorPoint(ccp(0.5f, -1));
-	m_pDisplayValueLabel_H->setPosition(ccp(origin.x + visibleSize.width/2 ,origin.y + visibleSize.height*4/5+15));
+	//m_pDisplayValueLabel_H->setAnchorPoint(ccp(0.5f, -1));
+	m_pDisplayValueLabel_H->setPosition(ccp(origin.x + visibleSize.width/2 ,origin.y + visibleSize.height*4/5+20));
 	m_pUiLayer->addWidget(m_pDisplayValueLabel_H);
 
 
@@ -120,9 +147,9 @@ void  EditScene::addSliders()
 	m_pDisplayValueLabel_V->setText("Move the slider thumb");
 	m_pDisplayValueLabel_V->setFontName("Marker Felt");
 	m_pDisplayValueLabel_V->setFontSize(32);
-	m_pDisplayValueLabel_V->setAnchorPoint(ccp(0.5f, -1));
+	//m_pDisplayValueLabel_V->setAnchorPoint(ccp(0.5f, -1));
 	m_pDisplayValueLabel_V->setRotation(-90);
-	m_pDisplayValueLabel_V->setPosition(ccp(origin.x + visibleSize.width*1/8 +15 ,origin.y + visibleSize.height/2));
+	m_pDisplayValueLabel_V->setPosition(ccp(origin.x + visibleSize.width*1/16 -20 ,origin.y + visibleSize.height/2));
 	m_pUiLayer->addWidget(m_pDisplayValueLabel_V);
 
 	slider = MySlider::create();
@@ -131,7 +158,7 @@ void  EditScene::addSliders()
 	slider->loadBarTexture("sliderTrack2.png");
 	slider->loadSlidBallTextures("sliderThumb.png", "sliderThumb.png", "");
 	slider->loadProgressBarTexture("sliderProgress2.png");
-	slider->setPosition(ccp(origin.x + visibleSize.width*1/8 ,origin.y + visibleSize.height/2));
+	slider->setPosition(ccp(origin.x + visibleSize.width*1/16 ,origin.y + visibleSize.height/2-10));
 
 	slider->addEventListenerSlider(this, sliderpercentchangedselector(EditScene::sliderEvent2));
 	m_pUiLayer->addWidget(slider);
@@ -146,7 +173,10 @@ void EditScene::sliderEvent(CCObject *pSender, SliderEventType type)
 		{
 			MySlider* slider = dynamic_cast<MySlider*>(pSender);
 			int percent = slider->getPercent();
-			m_pDisplayValueLabel_H->setText(CCString::createWithFormat("Percent %d", percent)->getCString());
+			m_pDisplayValueLabel_H->setText(CCString::createWithFormat("Percent %d", percent)->getCString());//测试
+			//遍历被选择物体，设定其Xpercent。
+
+
 		}
 		break;
 
@@ -163,7 +193,8 @@ void EditScene::sliderEvent2(CCObject *pSender, SliderEventType type)
 		{
 			MySlider* slider = dynamic_cast<MySlider*>(pSender);
 			int percent = slider->getPercent();
-			m_pDisplayValueLabel_V->setText(CCString::createWithFormat("Percent %d", percent)->getCString());
+			m_pDisplayValueLabel_V->setText(CCString::createWithFormat("Percent %d", percent)->getCString());//测试
+			//遍历被选择物体，设定其Ypercent。
 		}
 		break;
 
@@ -182,7 +213,7 @@ void EditScene::rectangleSetting(CCObject* sender)
 		this->drawShape=RECTANGLE;
 
 		//修改MenuLayer的图片都为矩形。
-		MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
+		//MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
 		menuLayer->showRec();
 
 	}
@@ -198,7 +229,7 @@ void EditScene::circleSetting(CCObject* sender)
 		mTriangle_D->setOpacity(128); 
 		this->drawShape=CIRLE;
 		//修改MenuLayer的图片都为圆形。
-		MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
+		//MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
 		menuLayer->showCircle();
 	}
 
@@ -213,7 +244,7 @@ void EditScene::triangleSetting(CCObject* sender)
 		mTriangle_D->setOpacity(255); 
 		this->drawShape=TRIANGLE;
 		//修改MenuLayer的图片都为三角形。
-		MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
+		//MenuLayer*menuLayer = (MenuLayer*)this->getChildByTag(1);
 		menuLayer->showTriangle();
 	}
 
@@ -227,17 +258,99 @@ void EditScene::registerWithTouchDispatcher()
 }
 bool EditScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
 {
-	//在触点处，放置一个已定的形状和材质的sprite。在update中按照放大系数放大。并计算其质量。
-	return true;
+	//触点在一个正方形区域并且，不触碰已存在的物体时，才会进一步传递。
+	CCPoint touchLocation = touch->getLocation();    
+	CCPoint touchPoint = convertToNodeSpace( touchLocation );
+	//只有下面一半区域可以添加物体，并且左边调节条处也不可以放置。
+	//循环遍历数组中的所有物体，如果都没有触碰，才可以放置。
+	//如果触碰到了某个物体，则设物体的selected属性为true
+	if(touchPoint.x>origin.x + visibleSize.width*1/16 &&touchPoint.y<origin.y + visibleSize.height*1/2)
+	{
+		obstacle* child;
+		CCObject* pObject = NULL;
+		CCARRAY_FOREACH(_Obstacle, pObject)
+		{
+			child = (obstacle*)pObject;
+			if(! child )
+				break;
+			if (child->containPoint(touchPoint)) 
+			{
+				child->setSelected();
+				return false;
+			}
+		}
+		return true;
+	}	
+	else return false;
 }
 void EditScene::ccTouchEnded(CCTouch* touch, CCEvent* event)
 {
+	CCPoint touchLocation = touch->getLocation();    
+	CCPoint touchPoint = convertToNodeSpace( touchLocation );
+	//在触摸点增加一个drawShape和MenuLayer：：drawMaterial材质的物体。
+
+	obstacle* mObstacle =obstacle::createObstacle(drawShape,menuLayer->drawMaterial,touchPoint);
+
+	//创建一个无重力的物理世界，并将物体放到其中。当点击test按键时，改变物理世界的属性。
+
+	addObstacle(mObstacle);
 
 
+
+
+}
+
+
+void EditScene::initWorld(){
+	world = new b2World(b2Vec2(0, 0));
+
+}
+
+void EditScene::addObstacle(obstacle* mObstacle)
+
+{
+
+	//统一配置
+	b2BodyDef bodyDef;
+	b2PolygonShape ObstacleShape;
+	b2FixtureDef rockFixtureDef;
+
+
+	//Body配置		
+	bodyDef.type = b2_dynamicBody;
+	bodyDef.position = b2Vec2(mObstacle->obstaclePosition.x/RATIO,mObstacle->obstaclePosition.y/RATIO);
+	bodyDef.allowSleep = true;
+	//fixture配置
+	ObstacleShape.SetAsBox(mObstacle->ObstacleSize.width/2/RATIO,mObstacle->ObstacleSize.height/2/RATIO);
+	rockFixtureDef.shape= &ObstacleShape;
+	rockFixtureDef.density=8;
+	rockFixtureDef.restitution = 0.0f;//反弹特性
+	rockFixtureDef.friction=0.3f;
+
+	b2Body *  ObstacleBody= world->CreateBody(&bodyDef);
+
+	ObstacleBody->CreateFixture(&rockFixtureDef);
+
+	mObstacle->setPTMRatio(RATIO);
+	mObstacle->setB2Body(ObstacleBody);
+	mObstacle->setPosition(ccp( mObstacle->getobstaclePosition().x,  mObstacle->getobstaclePosition().y));
+
+
+	//test the mass
+	b2MassData massData;
+	ObstacleBody->GetMassData(&massData);
+
+
+	addChild(mObstacle);
+
+	_Obstacle->addObject(mObstacle);
 }
 
 void EditScene::updateGame(float dt)
 {
+	//物理世界更新
+	world->Step(dt, 8, 3);
+	//遍历物体数组，如果有selected的，改变物体颜色，激活选择条。
 
 }
 
@@ -285,8 +398,12 @@ bool MenuLayer::init()
 
 	this->addChild(menu, 1,0);
 
+
+
 	return true;
 }
+
+
 
 //矩形
 void MenuLayer::MetalSettingR(CCObject* sender)
