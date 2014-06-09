@@ -6,7 +6,8 @@
 USING_NS_CC;
 
 EditScene::EditScene():
-	_Obstacle(NULL)
+	_Obstacle(NULL),
+	selectedObstacle(NULL)
 {
 
 }
@@ -179,19 +180,10 @@ void EditScene::sliderEvent(CCObject *pSender, SliderEventType type)
 			MySlider* slider = dynamic_cast<MySlider*>(pSender);
 			int percent = slider->getPercent();
 			m_pDisplayValueLabel_H->setText(CCString::createWithFormat("Percent %d", percent)->getCString());//测试
-			//遍历被选择物体，设定其Xpercent。
-			obstacle* child;
-			CCObject* pObject = NULL;
-			CCARRAY_FOREACH(_Obstacle, pObject)
-			{
-				child = (obstacle*)pObject;
-				if(! child )
-					break;
-				if (child->Selected) 
-				{
-					child->scale.x=percent;
-				}
-			}
+			//被选择物体，设定其Xpercent。
+			if(selectedObstacle!=NULL)
+				selectedObstacle->scale.x=percent;
+
 
 
 		}
@@ -211,20 +203,9 @@ void EditScene::sliderEvent2(CCObject *pSender, SliderEventType type)
 			MySlider* slider = dynamic_cast<MySlider*>(pSender);
 			int percent = slider->getPercent();
 			m_pDisplayValueLabel_V->setText(CCString::createWithFormat("Percent %d", percent)->getCString());//测试
-			//遍历被选择物体，设定其Ypercent。
-			obstacle* child;
-			CCObject* pObject = NULL;
-
-			CCARRAY_FOREACH(_Obstacle, pObject)
-			{
-				child = (obstacle*)pObject;
-				if(! child )
-					break;
-				if (child->Selected) 
-				{
-					child->scale.y=percent;
-				}
-			}
+			//被选择物体，设定其Xpercent。
+			if(selectedObstacle!=NULL)
+				selectedObstacle->scale.y=percent;
 		}
 		break;
 
@@ -297,16 +278,13 @@ bool EditScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
 	obstacle* child;
 	CCObject* pObject = NULL;
 
+	//更新物理世界
+		if(selectedObstacle!=NULL)
+		updateObstaclePhysics(selectedObstacle);
+
 	if(touchPoint.x>origin.x + visibleSize.width*1/16 &&touchPoint.y<origin.y + visibleSize.height*1/2)
 	{
-		//先将所有物体seleted设为false
-		CCARRAY_FOREACH(_Obstacle, pObject)
-		{
-			child = (obstacle*)pObject;
-			if(! child )
-				break;
-			child->setSelected(false);
-		}
+
 		//然后设选中的物体为selected
 		CCARRAY_FOREACH(_Obstacle, pObject)
 		{
@@ -315,14 +293,17 @@ bool EditScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
 				break;
 			if (child->containPoint(touchPoint)) 
 			{
-				child->setSelected(true);
+				//child->setSelected(true);
+				selectedObstacle =child;
 				return false;
 			}
 		}
+		selectedObstacle=NULL;
 		return true;
 	}	
 	else 
 	{
+
 		return false;
 	}
 
@@ -338,7 +319,6 @@ void EditScene::ccTouchEnded(CCTouch* touch, CCEvent* event)
 	//创建一个无重力的物理世界，并将物体放到其中。当点击test按键时，改变物理世界的属性。
 
 	addObstacle(mObstacle);
-
 
 
 
@@ -445,25 +425,11 @@ void EditScene::updateGame(float dt)
 {
 	//物理世界更新
 	world->Step(dt, 8, 3);
-	//遍历物体数组，如果有selected的，改变物体颜色，并根据scale 改变其大小。
-	obstacle* child;
-	CCObject* pObject = NULL;
-	CCARRAY_FOREACH(_Obstacle, pObject)
-	{
-		child = (obstacle*)pObject;
-		if(! child )
-			break;
-		if (child->Selected) 
-		{
-			//1 确保scale 大于0
-			//2 同时改变其贴图大小和 物理世界中的大小
-			//
-			updateObstacleTexture(child);
-			updateObstaclePhysics(child);
+
+	if(selectedObstacle!=NULL)
+		updateObstacleTexture(selectedObstacle);
 
 
-		}
-	}
 
 }
 

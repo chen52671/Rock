@@ -85,7 +85,7 @@ public:
 	b2World *world;
 	CCPoint origin;
 	CCSize visibleSize;
-
+	obstacle*  selectedObstacle;
 protected:
 	CCMenuItemImage *mRectangle_D;
 	CCMenuItemImage *mCircle_D;
@@ -96,6 +96,7 @@ protected:
 	UILabel* m_pDisplayValueLabel_V;
 	MenuLayer*menuLayer;
 	CCArray *_Obstacle; //保存所有障碍物的数组
+	
 
 };
 
