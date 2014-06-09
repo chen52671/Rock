@@ -44,15 +44,19 @@ public:
 	void setRadius(float radius );
 	CCPoint getobstaclePosition();
 	bool containPoint(CCPoint pt);
-	void setSelected();
-	float radius;//ratio
+	void setSelected(bool Selected);
+	float radius;//半径 obsolete 
 	_drawMaterial obstacleMaterial;
 	_drawShape obstacleShape;
 	CCPoint obstaclePosition;
 	CCSize ObstacleSize;
 	bool Selected;
-	float obstacleAngle;
-	bool Dead;
+	float obstacleAngle; //物体旋转角度
+
+	b2Vec2 scale;//slider 在x y 方向上的缩放系数 0-100
+	b2Vec2 AdapterScale;//x y 方向上的适配系数 总缩放系数为scale*AdapterScale
+
+	bool Dead;//如果死掉了，从update中删除掉。
 	float weight;
 	enum _obstacleType obstacleType;//obsolete 
 protected:

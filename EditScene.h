@@ -79,9 +79,13 @@ public:
 	
 	void initWorld();
 	void addObstacle(obstacle* mObstacle);
+	bool updateObstacleTexture(obstacle* mObstacle);
+	bool updateObstaclePhysics(obstacle* mObstacle);
+	void  addMenu();
 	b2World *world;
 	CCPoint origin;
 	CCSize visibleSize;
+
 protected:
 	CCMenuItemImage *mRectangle_D;
 	CCMenuItemImage *mCircle_D;

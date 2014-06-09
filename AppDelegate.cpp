@@ -17,6 +17,8 @@ bool AppDelegate::applicationDidFinishLaunching() {
     CCEGLView* pEGLView = CCEGLView::sharedOpenGLView();
 	//windows版本设置。Android版本不设置
 	pEGLView->setFrameSize(800,1000);
+
+
 	//pEGLView->setDesignResolutionSize
     pDirector->setOpenGLView(pEGLView);
 	

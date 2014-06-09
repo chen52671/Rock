@@ -4,7 +4,7 @@
 #include "GameOverScene.h"
 #include "MenuScene.h"
 USING_NS_CC;
-
+//看样子这里都得改呀，从数据库读取地图。然后加载。
 CCScene* GameScene::scene()
 {
 	// 'scene' is an autorelease object
