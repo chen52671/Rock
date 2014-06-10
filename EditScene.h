@@ -71,17 +71,26 @@ public:
 	virtual void registerWithTouchDispatcher();
 	virtual bool ccTouchBegan(CCTouch* touch, CCEvent* event);
 	virtual void ccTouchEnded(CCTouch* touch, CCEvent* event);
-	
+
 	void updateGame(float dt);
 	void addSliders();
 	void sliderEvent(CCObject* pSender, SliderEventType type);
 	void sliderEvent2(CCObject* pSender, SliderEventType type);
-	
+	void sliderEvent3(CCObject* pSender, SliderEventType type);
 	void initWorld();
 	void addObstacle(obstacle* mObstacle);
 	bool updateObstacleTexture(obstacle* mObstacle);
 	bool updateObstaclePhysics(obstacle* mObstacle);
 	void  addMenu();
+	void addGround();
+	void onEdit(CCObject* sender);
+	void onQuit(CCObject* sender);
+	void onTest(CCObject* sender);
+	void onSave(CCObject* sender);
+	void SetSleepingAllowed(bool allowed);
+
+
+
 	b2World *world;
 	CCPoint origin;
 	CCSize visibleSize;
@@ -96,7 +105,7 @@ protected:
 	UILabel* m_pDisplayValueLabel_V;
 	MenuLayer*menuLayer;
 	CCArray *_Obstacle; //保存所有障碍物的数组
-	
+
 
 };
 

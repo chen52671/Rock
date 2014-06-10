@@ -52,7 +52,7 @@ public:
 	CCSize ObstacleSize;
 	bool Selected;
 	float obstacleAngle; //物体旋转角度
-
+	b2Fixture* oldFixture;
 	b2Vec2 scale;//slider 在x y 方向上的缩放系数 0-100
 	b2Vec2 AdapterScale;//x y 方向上的适配系数 总缩放系数为scale*AdapterScale
 

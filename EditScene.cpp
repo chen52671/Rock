@@ -57,7 +57,8 @@ bool EditScene::init()
 
 	//1 初始化物理世界，重力为0
 	initWorld();
-
+	//增加地面和墙壁
+	addGround();
 	// 增加返回按钮-稍后改为暂停
 	CCMenuItemImage *pCloseItem = CCMenuItemImage::create(
 		"CloseNormal.png",
@@ -128,14 +129,6 @@ void  EditScene::addSliders()
 	//把zorder设为100，这样滑块不会被物体阻挡。
 	this->addChild(m_pUiLayer,100);
 	// Create the 横向 slider
-	m_pDisplayValueLabel_H = UILabel::create();
-	m_pDisplayValueLabel_H->setText("Move the slider thumb");
-	m_pDisplayValueLabel_H->setFontName("Marker Felt");
-	m_pDisplayValueLabel_H->setFontSize(32);
-	//m_pDisplayValueLabel_H->setAnchorPoint(ccp(0.5f, -1));
-	m_pDisplayValueLabel_H->setPosition(ccp(origin.x + visibleSize.width/2 ,origin.y + visibleSize.height*4/5+20));
-	m_pUiLayer->addWidget(m_pDisplayValueLabel_H);
-
 
 	MySlider* slider = MySlider::create();
 	slider->setVertical(false);
@@ -143,20 +136,12 @@ void  EditScene::addSliders()
 	slider->loadBarTexture("sliderTrack.png");
 	slider->loadSlidBallTextures("sliderThumb.png", "sliderThumb.png", "");
 	slider->loadProgressBarTexture("sliderProgress.png");
-	slider->setPosition(ccp(origin.x + visibleSize.width/2 ,origin.y + visibleSize.height*4/5));
+	slider->setPosition(ccp(origin.x + visibleSize.width/2 ,origin.y + visibleSize.height*5/6));
 
 	slider->addEventListenerSlider(this, sliderpercentchangedselector(EditScene::sliderEvent));
 	m_pUiLayer->addWidget(slider);
 
-	//增加纵向slider 
-	m_pDisplayValueLabel_V = UILabel::create();
-	m_pDisplayValueLabel_V->setText("Move the slider thumb");
-	m_pDisplayValueLabel_V->setFontName("Marker Felt");
-	m_pDisplayValueLabel_V->setFontSize(32);
-	//m_pDisplayValueLabel_V->setAnchorPoint(ccp(0.5f, -1));
-	m_pDisplayValueLabel_V->setRotation(-90);
-	m_pDisplayValueLabel_V->setPosition(ccp(origin.x + visibleSize.width*1/16 -20 ,origin.y + visibleSize.height/2));
-	m_pUiLayer->addWidget(m_pDisplayValueLabel_V);
+	//增加纵向slider 1
 
 	slider = MySlider::create();
 	slider->setVertical(true);//这个是关键
@@ -164,9 +149,22 @@ void  EditScene::addSliders()
 	slider->loadBarTexture("sliderTrack2.png");
 	slider->loadSlidBallTextures("sliderThumb.png", "sliderThumb.png", "");
 	slider->loadProgressBarTexture("sliderProgress2.png");
-	slider->setPosition(ccp(origin.x + visibleSize.width*1/16 ,origin.y + visibleSize.height/2-10));
+	slider->setPosition(ccp(origin.x + 10 ,origin.y + visibleSize.height/2-10));
 
 	slider->addEventListenerSlider(this, sliderpercentchangedselector(EditScene::sliderEvent2));
+	m_pUiLayer->addWidget(slider);
+
+	//增加纵向slider 2 控制旋转
+
+	slider = MySlider::create();
+	slider->setVertical(true);//这个是关键
+	slider->setTouchEnabled(true);
+	slider->loadBarTexture("sliderTrack2.png");
+	slider->loadSlidBallTextures("sliderThumb.png", "sliderThumb.png", "");
+	slider->loadProgressBarTexture("sliderProgress2.png");
+	slider->setPosition(ccp(origin.x + visibleSize.width-10 ,origin.y + visibleSize.height/2-10));
+
+	slider->addEventListenerSlider(this, sliderpercentchangedselector(EditScene::sliderEvent3));
 	m_pUiLayer->addWidget(slider);
 
 }
@@ -179,12 +177,14 @@ void EditScene::sliderEvent(CCObject *pSender, SliderEventType type)
 		{
 			MySlider* slider = dynamic_cast<MySlider*>(pSender);
 			int percent = slider->getPercent();
-			m_pDisplayValueLabel_H->setText(CCString::createWithFormat("Percent %d", percent)->getCString());//测试
+
 			//被选择物体，设定其Xpercent。
 			if(selectedObstacle!=NULL)
+			{
 				selectedObstacle->scale.x=percent;
 
-
+				updateObstacleTexture(selectedObstacle);
+			}
 
 		}
 		break;
@@ -202,10 +202,40 @@ void EditScene::sliderEvent2(CCObject *pSender, SliderEventType type)
 		{
 			MySlider* slider = dynamic_cast<MySlider*>(pSender);
 			int percent = slider->getPercent();
-			m_pDisplayValueLabel_V->setText(CCString::createWithFormat("Percent %d", percent)->getCString());//测试
+
 			//被选择物体，设定其Xpercent。
 			if(selectedObstacle!=NULL)
+			{
 				selectedObstacle->scale.y=percent;
+
+				updateObstacleTexture(selectedObstacle);
+			}
+
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
+void EditScene::sliderEvent3(CCObject *pSender, SliderEventType type)
+{
+	switch (type)
+	{
+	case SLIDER_PERCENTCHANGED:
+		{
+			MySlider* slider = dynamic_cast<MySlider*>(pSender);
+			int percent = slider->getPercent();
+
+			//被选择物体，设定旋转。
+			if(selectedObstacle!=NULL)
+			{
+				selectedObstacle->obstacleAngle=percent*3.6;
+
+				updateObstacleTexture(selectedObstacle);
+			}
+
 		}
 		break;
 
@@ -279,10 +309,10 @@ bool EditScene::ccTouchBegan(CCTouch* touch, CCEvent* event)
 	CCObject* pObject = NULL;
 
 	//更新物理世界
-		if(selectedObstacle!=NULL)
+	if(selectedObstacle!=NULL)
 		updateObstaclePhysics(selectedObstacle);
 
-	if(touchPoint.x>origin.x + visibleSize.width*1/16 &&touchPoint.y<origin.y + visibleSize.height*1/2)
+	if(touchPoint.x>origin.x + 15 &&touchPoint.x<origin.x +visibleSize.width - 15 &&touchPoint.y<origin.y + visibleSize.height*1/2)
 	{
 
 		//然后设选中的物体为selected
@@ -326,7 +356,7 @@ void EditScene::ccTouchEnded(CCTouch* touch, CCEvent* event)
 
 
 void EditScene::initWorld(){
-	world = new b2World(b2Vec2(0, 0));
+	world = new b2World(b2Vec2(0, -0.1));
 
 }
 
@@ -401,7 +431,7 @@ void EditScene::addObstacle(obstacle* mObstacle)
 
 	b2Body *  ObstacleBody= world->CreateBody(&bodyDef);
 
-	ObstacleBody->CreateFixture(&obstacleFixtureDef);
+	mObstacle->oldFixture=ObstacleBody->CreateFixture(&obstacleFixtureDef);
 
 
 
@@ -426,8 +456,8 @@ void EditScene::updateGame(float dt)
 	//物理世界更新
 	world->Step(dt, 8, 3);
 
-	if(selectedObstacle!=NULL)
-		updateObstacleTexture(selectedObstacle);
+	//	if(selectedObstacle!=NULL)
+	//		updateObstacleTexture(selectedObstacle);
 
 
 
@@ -439,6 +469,11 @@ bool EditScene::updateObstacleTexture(obstacle* mObstacle)
 	//设置贴图大小
 	mObstacle->setScaleX(mObstacle->scale.x/100);
 	mObstacle->setScaleY(mObstacle->scale.y/100);
+	if(mObstacle->obstacleAngle>0)
+	{
+		mObstacle->setRotation(mObstacle->obstacleAngle);
+		mObstacle->obstacleAngle = -1;
+	}
 	return true;
 
 }
@@ -504,19 +539,134 @@ bool EditScene::updateObstaclePhysics(obstacle* mObstacle)
 	default:
 		break;
 	}
+	//应该把原来的fixture删掉才可以——待修改。
+	//设一个oldFixture 指针来保存原有的fixture，然后删除，新建一个fixture，并设为oldFixture
+	if (mObstacle->oldFixture != NULL)
+		ObstacleBody->DestroyFixture(mObstacle->oldFixture);
 
-	ObstacleBody->CreateFixture(&obstacleFixtureDef);
 
+	mObstacle->oldFixture = ObstacleBody->CreateFixture(&obstacleFixtureDef);
+	//mObstacle->setRotation(mObstacle->obstacleAngle);
 	return true;
 }
 
 void EditScene::menuBackCallback(CCObject* pSender)
 {
+	// 测试
+	CCMenuItemFont* itemRestart = CCMenuItemFont::create("Test", this, menu_selector(EditScene::onTest));
+	//itemRestart->setFontSize(0.5*itemRestart->fontSize());
+
+	// 保存
+	CCMenuItemFont* itemNext = CCMenuItemFont::create("Sava", this, menu_selector(EditScene::onSave));
+	//menu动画
+
+	//继续编辑
+	CCMenuItemFont* itemCancel = CCMenuItemFont::create("Back to Edit", this, menu_selector(EditScene::onEdit));
+	// 返回主菜单 Item
+	CCMenuItemFont* itemBack = CCMenuItemFont::create("Back to main menu", this, menu_selector(EditScene::onQuit));
+	//itemBack->setFontSize(0.5*itemBack->fontSize());
+
+	//创建menu
+	CCMenu* menu = CCMenu::create(itemRestart,itemNext,itemCancel,itemBack,NULL);
+	//竖向排列
+	menu->alignItemsVerticallyWithPadding(40);
+
+	addChild(menu,0,7);
+
+	CCSize screenSize = CCDirector::sharedDirector()->getVisibleSize();
+
+	menu->setPosition(ccp(screenSize.width/2, screenSize.height/2));
+
+
+
+}
+
+
+void EditScene::onEdit(CCObject* sender)
+{
+	SetSleepingAllowed(true);
+	world->SetGravity(b2Vec2(0, -0.1));
+	removeChildByTag(7);
+}
+void EditScene::onQuit(CCObject* sender)
+{
+	//
 	CCScene *scene = MenuScene::scene();
 
 	CCDirector::sharedDirector()->replaceScene(scene);  
+}
+void EditScene::onTest(CCObject* sender)
+{
+	SetSleepingAllowed(false);
+	world->SetGravity(b2Vec2(0, -10));
+	removeChildByTag(7);
+}
+void EditScene::onSave(CCObject* sender)
+{
 
 }
+void EditScene::addGround()
+{
+	CCSize worldsize =CCDirector::sharedDirector()->getVisibleSize();
+
+	b2BodyDef bDef;
+	//底边
+	b2FixtureDef groundFixtureDef;
+	b2Body* ground = NULL;
+	b2BodyDef bd;
+	ground = world->CreateBody(&bd);
+
+	b2EdgeShape shape;
+	shape.Set(b2Vec2(-40.0f, 3.0f), b2Vec2(40.0f,3.0f));//地面高度待修改
+	groundFixtureDef.shape=&shape;
+	groundFixtureDef.friction=0.5;
+	ground->CreateFixture(&groundFixtureDef);
+	//添加左边墙壁
+	b2FixtureDef wallFixtureDef;
+	b2Body* liftwall = NULL;
+	b2BodyDef lwallBD;
+	liftwall = world->CreateBody(&lwallBD);
+
+	shape.Set(b2Vec2(0.0f, 0.0f), b2Vec2(0.0f, 20.0f));
+	wallFixtureDef.shape=&shape;
+	wallFixtureDef.friction=0.5;
+	ground->CreateFixture(&wallFixtureDef);
+	//添加右边墙壁
+	b2Body* rightwall = NULL;
+	b2BodyDef rwallBD;
+
+	rightwall = world->CreateBody(&rwallBD);
+
+	shape.Set(b2Vec2(worldsize.width/RATIO, 0.0f), b2Vec2(worldsize.width/RATIO, 20.0f));
+	wallFixtureDef.shape=&shape;
+	wallFixtureDef.friction=2;
+	ground->CreateFixture(&wallFixtureDef);
+
+
+}
+
+void EditScene::SetSleepingAllowed(bool allowed)
+{
+		obstacle* child;
+	CCObject* pObject = NULL;
+
+
+
+		//然后设选中的物体为selected
+		CCARRAY_FOREACH(_Obstacle, pObject)
+		{
+			child = (obstacle*)pObject;
+			if(! child )
+				break;
+			child->getB2Body()->SetSleepingAllowed(allowed);
+
+		}
+
+}
+
+
+
+
 
 
 
